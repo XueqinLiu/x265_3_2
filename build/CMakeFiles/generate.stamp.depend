@@ -1,0 +1,41 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-3.16/Modules/CMakeCInformation.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CMakeCXXInformation.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CMakeCheckCompilerFlagCommonPatterns.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CMakeCommonLanguageInclude.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CMakeGenericSystem.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CMakeInitializeConfigs.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CMakeLanguageInformation.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CMakeRCInformation.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CMakeSystemSpecificInformation.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CMakeSystemSpecificInitialize.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CheckCXXCompilerFlag.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CheckCXXSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CheckFunctionExists.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CheckIncludeFiles.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/CheckSymbolExists.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/Compiler/MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/Compiler/MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindGit.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindHg.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindPackageMessage.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/Platform/Windows-MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/Platform/Windows-MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/Platform/Windows-MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/Platform/Windows.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/Platform/WindowsPaths.cmake
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/3.16.3/CMakeCCompiler.cmake
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/3.16.3/CMakeCXXCompiler.cmake
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/3.16.3/CMakeRCCompiler.cmake
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/3.16.3/CMakeSystem.cmake
+C:/wgq/Codec/x265_3.2/source/CMakeLists.txt
+C:/wgq/Codec/x265_3.2/source/cmake/FindNasm.cmake
+C:/wgq/Codec/x265_3.2/source/cmake/FindVLD.cmake
+C:/wgq/Codec/x265_3.2/source/cmake/cmake_uninstall.cmake.in
+C:/wgq/Codec/x265_3.2/source/cmake/version.cmake
+C:/wgq/Codec/x265_3.2/source/x265.def.in
+C:/wgq/Codec/x265_3.2/source/x265.pc.in
+C:/wgq/Codec/x265_3.2/source/x265.rc.in
+C:/wgq/Codec/x265_3.2/source/x265_config.h.in

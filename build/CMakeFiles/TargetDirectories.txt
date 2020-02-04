@@ -1,0 +1,11 @@
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/x265-static.dir
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/x265-shared.dir
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/cli.dir
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/uninstall.dir
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/INSTALL.dir
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/ALL_BUILD.dir
+C:/wgq/Codec/x265_3.2/build/CMakeFiles/ZERO_CHECK.dir
+C:/wgq/Codec/x265_3.2/build/encoder/CMakeFiles/encoder.dir
+C:/wgq/Codec/x265_3.2/build/encoder/CMakeFiles/INSTALL.dir
+C:/wgq/Codec/x265_3.2/build/common/CMakeFiles/common.dir
+C:/wgq/Codec/x265_3.2/build/common/CMakeFiles/INSTALL.dir
