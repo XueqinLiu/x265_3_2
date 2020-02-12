@@ -1,0 +1,687 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Preset Options &#8212; x265  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Lossless" href="lossless.html" />
+    <link rel="prev" title="Threading" href="threading.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="lossless.html" title="Lossless"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="threading.html" title="Threading"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="preset-options">
+<h1>Preset Options<a class="headerlink" href="#preset-options" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="presets">
+<span id="id1"></span><h2>Presets<a class="headerlink" href="#presets" title="Permalink to this headline">¶</a></h2>
+<p>x265 has ten predefined <a class="reference internal" href="cli.html#cmdoption-preset"><code class="xref std std-option docutils literal notranslate"><span class="pre">--preset</span></code></a> options that optimize the
+trade-off between encoding speed (encoded frames per second) and
+compression efficiency (quality per bit in the bitstream).  The default
+preset is medium.  It does a reasonably good job of finding the best
+possible quality without spending excessive CPU cycles looking for the
+absolute most efficient way to achieve that quality.  When you use
+faster presets, the encoder takes shortcuts to improve performance at
+the expense of quality and compression efficiency.  When you use slower
+presets, x265 tests more encoding options, using more computations to
+achieve the best quality at your selected bit rate (or in the case of
+–crf rate control, the lowest bit rate at the selected quality).</p>
+<p>The presets adjust encoder parameters as shown in the following table.
+Any parameters below that are specified in your command-line will be
+changed from the value specified by the preset.</p>
+<blockquote>
+<div><ol class="arabic simple" start="0">
+<li><p>ultrafast</p></li>
+<li><p>superfast</p></li>
+<li><p>veryfast</p></li>
+<li><p>faster</p></li>
+<li><p>fast</p></li>
+<li><p>medium <strong>(default)</strong></p></li>
+<li><p>slow</p></li>
+<li><p>slower</p></li>
+<li><p>veryslow</p></li>
+<li><p>placebo</p></li>
+</ol>
+</div></blockquote>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 7%" />
+<col style="width: 7%" />
+<col style="width: 7%" />
+<col style="width: 7%" />
+<col style="width: 7%" />
+<col style="width: 7%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>preset</p></th>
+<th class="head"><p>0</p></th>
+<th class="head"><p>1</p></th>
+<th class="head"><p>2</p></th>
+<th class="head"><p>3</p></th>
+<th class="head"><p>4</p></th>
+<th class="head"><p>5</p></th>
+<th class="head"><p>6</p></th>
+<th class="head"><p>7</p></th>
+<th class="head"><p>8</p></th>
+<th class="head"><p>9</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ctu</p></td>
+<td><p>32</p></td>
+<td><p>32</p></td>
+<td><p>64</p></td>
+<td><p>64</p></td>
+<td><p>64</p></td>
+<td><p>64</p></td>
+<td><p>64</p></td>
+<td><p>64</p></td>
+<td><p>64</p></td>
+<td><p>64</p></td>
+</tr>
+<tr class="row-odd"><td><p>min-cu-size</p></td>
+<td><p>16</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-even"><td><p>bframes</p></td>
+<td><p>3</p></td>
+<td><p>3</p></td>
+<td><p>4</p></td>
+<td><p>4</p></td>
+<td><p>4</p></td>
+<td><p>4</p></td>
+<td><p>4</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-odd"><td><p>b-adapt</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>rc-lookahead</p></td>
+<td><p>5</p></td>
+<td><p>10</p></td>
+<td><p>15</p></td>
+<td><p>15</p></td>
+<td><p>15</p></td>
+<td><p>20</p></td>
+<td><p>25</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+<td><p>60</p></td>
+</tr>
+<tr class="row-odd"><td><p>lookahead-slices</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>scenecut</p></td>
+<td><p>0</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+<td><p>40</p></td>
+</tr>
+<tr class="row-odd"><td><p>ref</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+<td><p>3</p></td>
+<td><p>4</p></td>
+<td><p>5</p></td>
+<td><p>5</p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-even"><td><p>limit-refs</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>3</p></td>
+<td><p>3</p></td>
+<td><p>3</p></td>
+<td><p>3</p></td>
+<td><p>3</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>me</p></td>
+<td><p>dia</p></td>
+<td><p>hex</p></td>
+<td><p>hex</p></td>
+<td><p>hex</p></td>
+<td><p>hex</p></td>
+<td><p>hex</p></td>
+<td><p>star</p></td>
+<td><p>star</p></td>
+<td><p>star</p></td>
+<td><p>star</p></td>
+</tr>
+<tr class="row-even"><td><p>merange</p></td>
+<td><p>57</p></td>
+<td><p>57</p></td>
+<td><p>57</p></td>
+<td><p>57</p></td>
+<td><p>57</p></td>
+<td><p>57</p></td>
+<td><p>57</p></td>
+<td><p>57</p></td>
+<td><p>57</p></td>
+<td><p>92</p></td>
+</tr>
+<tr class="row-odd"><td><p>subme</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+<td><p>4</p></td>
+<td><p>4</p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-even"><td><p>rect</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>amp</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>limit-modes</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>max-merge</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+<td><p>4</p></td>
+<td><p>5</p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-even"><td><p>early-skip</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>recursion-skip</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>fast-intra</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>b-intra</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>sao</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>signhide</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>weightp</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>weightb</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>aq-mode</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-odd"><td><p>cuTree</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>rdLevel</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+<td><p>4</p></td>
+<td><p>6</p></td>
+<td><p>6</p></td>
+<td><p>6</p></td>
+</tr>
+<tr class="row-odd"><td><p>rdoq-level</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>tu-intra</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>3</p></td>
+<td><p>3</p></td>
+<td><p>4</p></td>
+</tr>
+<tr class="row-odd"><td><p>tu-inter</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>3</p></td>
+<td><p>3</p></td>
+<td><p>4</p></td>
+</tr>
+<tr class="row-even"><td><p>limit-tu</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="tuning">
+<span id="tunings"></span><h2>Tuning<a class="headerlink" href="#tuning" title="Permalink to this headline">¶</a></h2>
+<p>There are a few <a class="reference internal" href="cli.html#cmdoption-tune"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tune</span></code></a> options available, which are applied
+after the preset.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <em>psnr</em> and <em>ssim</em> tune options disable all optimizations that
+sacrafice metric scores for perceived visual quality (also known as
+psycho-visual optimizations). By default x265 always tunes for
+highest perceived visual quality but if one intends to measure an
+encode using PSNR or SSIM for the purpose of benchmarking, we highly
+recommend you configure x265 to tune for that particular metric.</p>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 79%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>–tune</p></th>
+<th class="head"><p>effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>psnr</p></td>
+<td><p>disables adaptive quant, psy-rd, and cutree</p></td>
+</tr>
+<tr class="row-odd"><td><p>ssim</p></td>
+<td><p>enables adaptive quant auto-mode, disables psy-rd</p></td>
+</tr>
+<tr class="row-even"><td><p>grain</p></td>
+<td><p>improves retention of film grain. more below</p></td>
+</tr>
+<tr class="row-odd"><td><p>fastdecode</p></td>
+<td><p>no loop filters, no weighted pred, no intra in B</p></td>
+</tr>
+<tr class="row-even"><td><p>zerolatency</p></td>
+<td><p>no lookahead, no B frames, no cutree</p></td>
+</tr>
+<tr class="row-odd"><td><p>animation</p></td>
+<td><p>improves encode quality for animated content</p></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="film-grain">
+<h3>Film Grain<a class="headerlink" href="#film-grain" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="cli.html#cmdoption-tune"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tune</span></code></a> <em>grain</em> aims to encode grainy content with the best
+visual quality. The purpose of this option is neither to retain nor
+eliminate grain, but prevent noticeable artifacts caused by uneven
+distribution of grain. <a class="reference internal" href="cli.html#cmdoption-tune"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tune</span></code></a> <em>grain</em> strongly restricts
+algorithms that vary the quantization parameter within and across frames.
+Tune grain also biases towards decisions that retain more high frequency
+components.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="cli.html#cmdoption-aq-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">--aq-mode</span></code></a> 0</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-cutree"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cutree</span></code></a> 0</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-ipratio"><code class="xref std std-option docutils literal notranslate"><span class="pre">--ipratio</span></code></a> 1.1</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-pbratio"><code class="xref std std-option docutils literal notranslate"><span class="pre">--pbratio</span></code></a> 1.0</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-qpstep"><code class="xref std std-option docutils literal notranslate"><span class="pre">--qpstep</span></code></a> 1</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-sao"><code class="xref std std-option docutils literal notranslate"><span class="pre">--sao</span></code></a> 0</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-psy-rd"><code class="xref std std-option docutils literal notranslate"><span class="pre">--psy-rd</span></code></a> 4.0</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-psy-rdoq"><code class="xref std std-option docutils literal notranslate"><span class="pre">--psy-rdoq</span></code></a> 10.0</p></li>
+<li><p><code class="xref std std-option docutils literal notranslate"><span class="pre">--recursion-skip</span></code> 0</p></li>
+</ul>
+</div></blockquote>
+<p>It also enables a specialised ratecontrol algorithm <a class="reference internal" href="cli.html#cmdoption-rc-grain"><code class="xref std std-option docutils literal notranslate"><span class="pre">--rc-grain</span></code></a>
+that strictly minimises QP fluctuations across frames, while still allowing
+the encoder to hit bitrate targets and VBV buffer limits (with a slightly
+higher margin of error than normal). It is highly recommended that this
+algorithm is used only through the <a class="reference internal" href="cli.html#cmdoption-tune"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tune</span></code></a> <em>grain</em> feature.
+Overriding the <cite>–tune</cite> <em>grain</em> settings might result in grain strobing, especially
+when enabling features like <a class="reference internal" href="cli.html#cmdoption-aq-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">--aq-mode</span></code></a> and <a class="reference internal" href="cli.html#cmdoption-cutree"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cutree</span></code></a> that modify
+per-block QPs within a given frame.</p>
+</div>
+<div class="section" id="fast-decode">
+<h3>Fast Decode<a class="headerlink" href="#fast-decode" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="cli.html#cmdoption-tune"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tune</span></code></a> <em>fastdecode</em> disables encoder features which tend to be
+bottlenecks for the decoder. It is intended for use with 4K content at
+high bitrates which can cause decoders to struggle. It disables both
+HEVC loop filters, which tend to be process bottlenecks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="cli.html#cmdoption-deblock"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-deblock</span></code></a></p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-sao"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-sao</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<p>It disables weighted prediction, which tend to be bandwidth bottlenecks:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="cli.html#cmdoption-weightp"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-weightp</span></code></a></p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-weightb"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-weightb</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<p>And it disables intra blocks in B frames with <a class="reference internal" href="cli.html#cmdoption-b-intra"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-b-intra</span></code></a>
+since intra predicted blocks cause serial dependencies in the decoder.</p>
+</div>
+<div class="section" id="zero-latency">
+<h3>Zero Latency<a class="headerlink" href="#zero-latency" title="Permalink to this headline">¶</a></h3>
+<p>There are two halves to the latency problem. There is latency at the
+decoder and latency at the encoder. <a class="reference internal" href="cli.html#cmdoption-tune"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tune</span></code></a> <em>zerolatency</em>
+removes latency from both sides. The decoder latency is removed by:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="cli.html#cmdoption-bframes"><code class="xref std std-option docutils literal notranslate"><span class="pre">--bframes</span></code></a> 0</p></li>
+</ul>
+</div></blockquote>
+<p>Encoder latency is removed by:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="cli.html#cmdoption-b-adapt"><code class="xref std std-option docutils literal notranslate"><span class="pre">--b-adapt</span></code></a> 0</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-rc-lookahead"><code class="xref std std-option docutils literal notranslate"><span class="pre">--rc-lookahead</span></code></a> 0</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-scenecut"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-scenecut</span></code></a></p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-cutree"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-cutree</span></code></a></p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-frame-threads"><code class="xref std std-option docutils literal notranslate"><span class="pre">--frame-threads</span></code></a> 1</p></li>
+</ul>
+</div></blockquote>
+<p>With all of these settings x265_encoder_encode() will run synchronously,
+the picture passed as pic_in will be encoded and returned as NALs. These
+settings disable frame parallelism, which is an important component for
+x265 performance. If you can tolerate any latency on the encoder, you
+can increase performance by increasing the number of frame threads. Each
+additional frame thread adds one frame of latency.</p>
+</div>
+<div class="section" id="animation">
+<h3>Animation<a class="headerlink" href="#animation" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="cli.html#cmdoption-tune"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tune</span></code></a> <em>animation</em> adjusts encoder settings to optimize the encode
+quality for animation content without impacting the encode speed. This is done by:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="cli.html#cmdoption-psy-rd"><code class="xref std std-option docutils literal notranslate"><span class="pre">--psy-rd</span></code></a> 0.4</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-aq-strength"><code class="xref std std-option docutils literal notranslate"><span class="pre">--aq-strength</span></code></a> 0.4</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-deblock"><code class="xref std std-option docutils literal notranslate"><span class="pre">--deblock</span></code></a> 1:1</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-bframes"><code class="xref std std-option docutils literal notranslate"><span class="pre">--bframes</span></code></a> Increase by 2</p></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Preset Options</a><ul>
+<li><a class="reference internal" href="#presets">Presets</a></li>
+<li><a class="reference internal" href="#tuning">Tuning</a><ul>
+<li><a class="reference internal" href="#film-grain">Film Grain</a></li>
+<li><a class="reference internal" href="#fast-decode">Fast Decode</a></li>
+<li><a class="reference internal" href="#zero-latency">Zero Latency</a></li>
+<li><a class="reference internal" href="#animation">Animation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="threading.html"
+                        title="previous chapter">Threading</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="lossless.html"
+                        title="next chapter">Lossless</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/presets.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="lossless.html" title="Lossless"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="threading.html" title="Threading"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014 MulticoreWare Inc.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
+    </div>
+  </body>
+</html>

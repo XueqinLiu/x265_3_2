@@ -157,8 +157,8 @@ void Encoder::create()
 
     x265_param* p = m_param;
 
-    int rows = (p->sourceHeight + p->maxCUSize - 1) >> g_log2Size[p->maxCUSize];
-    int cols = (p->sourceWidth  + p->maxCUSize - 1) >> g_log2Size[p->maxCUSize];
+    int rows = (p->sourceHeight + p->maxCUSize - 1) >> g_log2Size[p->maxCUSize];  //计算最大CU行数
+    int cols = (p->sourceWidth  + p->maxCUSize - 1) >> g_log2Size[p->maxCUSize];  //计算最大CU列数
 
     // Do not allow WPP if only one row or fewer than 3 columns, it is pointless and unstable
     if (rows == 1 || cols < 3)
@@ -175,7 +175,7 @@ void Encoder::create()
 
     m_numPools = 0;
     if (allowPools)
-        m_threadPool = ThreadPool::allocThreadPools(p, m_numPools, 0);
+        m_threadPool = ThreadPool::allocThreadPools(p, m_numPools, 0);  //分配线程池
     else
     {
         if (!p->frameNumThreads)
@@ -233,7 +233,7 @@ void Encoder::create()
             m_threadPool[pool].m_jpTable[m_frameEncoder[i]->m_jpId] = m_frameEncoder[i];
         }
         for (int i = 0; i < m_numPools; i++)
-            m_threadPool[i].start();
+            m_threadPool[i].start();  //开启线程
     }
     else
     {
@@ -242,17 +242,17 @@ void Encoder::create()
             m_frameEncoder[i]->m_jpId = 0;
     }
 
-    if (!m_scalingList.init())
+    if (!m_scalingList.init())  // 初始化量化中所需要的几个表格
     {
         x265_log(m_param, X265_LOG_ERROR, "Unable to allocate scaling list arrays\n");
         m_aborted = true;
         return;
     }
-    else if (!m_param->scalingLists || !strcmp(m_param->scalingLists, "off"))
+    else if (!m_param->scalingLists || !strcmp(m_param->scalingLists, "off")) // 如果scalingLists为0或者是off，则不使用量化矩阵表，只进行均匀量化
         m_scalingList.m_bEnabled = false;
-    else if (!strcmp(m_param->scalingLists, "default"))
+    else if (!strcmp(m_param->scalingLists, "default"))// 如果scalingLists为default，则使用HEVC中默认的量化矩阵进行量化
         m_scalingList.setDefaultScalingList();
-    else if (m_scalingList.parseScalingList(m_param->scalingLists))
+    else if (m_scalingList.parseScalingList(m_param->scalingLists)) // 否则从指定的文件中读取量化矩阵
         m_aborted = true;
     int pools = m_numPools;
     ThreadPool* lookAheadThreadPool = 0;
@@ -262,7 +262,7 @@ void Encoder::create()
     }
     else
         lookAheadThreadPool = m_threadPool;
-    m_lookahead = new Lookahead(m_param, lookAheadThreadPool);
+    m_lookahead = new Lookahead(m_param, lookAheadThreadPool);  //初始化lookahead用于帧类型决策
     if (pools)
     {
         m_lookahead->m_jpId = lookAheadThreadPool[0].m_numProviders++;
@@ -295,7 +295,7 @@ void Encoder::create()
             m_scalingList.setupQuantMatrices(m_sps.chromaFormatIdc);
         }
         else
-            m_scalingList.setupQuantMatrices(m_sps.chromaFormatIdc);
+            m_scalingList.setupQuantMatrices(m_sps.chromaFormatIdc); // 根据上面的配制和选项，设置量化矩阵表
 
         for (int q = 0; q < QP_MAX_MAX - QP_MAX_SPEC; q++)
         {
@@ -367,7 +367,7 @@ void Encoder::create()
 
     for (int i = 0; i < m_param->frameNumThreads; i++)
     {
-        m_frameEncoder[i]->start();
+        m_frameEncoder[i]->start();  //开启帧线程
         m_frameEncoder[i]->m_done.wait(); /* wait for thread to initialize */
     }
 
@@ -376,7 +376,7 @@ void Encoder::create()
 
     if (!m_rateControl->init(m_sps))
         m_aborted = true;
-    if (!m_lookahead->create())
+    if (!m_lookahead->create())//申请lookachead空间用于帧类型决策
         m_aborted = true;
 
     initRefIdx();
@@ -489,7 +489,7 @@ void Encoder::stopJobs()
         {
             m_frameEncoder[i]->getEncodedPicture(m_nalList);
             m_frameEncoder[i]->m_threadActive = false;
-            m_frameEncoder[i]->m_enable.trigger();
+            m_frameEncoder[i]->m_enable.trigger(); //触发
             m_frameEncoder[i]->stop();
         }
     }
@@ -995,7 +995,7 @@ void Encoder::copyUserSEIMessages(Frame *frame, const x265_picture* pic_in)
 int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
 {
 #if CHECKED_BUILD || _DEBUG
-    if (g_checkFailures)
+    if (g_checkFailures) //检错处理：正常情况不会进入
     {
         x265_log(m_param, X265_LOG_ERROR, "encoder aborting because of internal error\n");
         return -1;
@@ -1012,7 +1012,7 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
         m_exportedPic = NULL;
         m_dpb->recycleUnreferenced();
     }
-    if (pic_in && (!m_param->chunkEnd || (m_encodedFrameNum < m_param->chunkEnd)))
+    if (pic_in && (!m_param->chunkEnd || (m_encodedFrameNum < m_param->chunkEnd))) //如果当前有读入帧 （没有可能已经读完原始帧，但是lookachead buffer里面依然有待编码帧）
     {
         if (m_latestParam->forceFlush == 1)
         {
@@ -1025,16 +1025,17 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
             m_latestParam->forceFlush = 0;
         }
 
-        if (pic_in->bitDepth < 8 || pic_in->bitDepth > 16)
+        if (pic_in->bitDepth < 8 || pic_in->bitDepth > 16)//检错像素深度
         {
             x265_log(m_param, X265_LOG_ERROR, "Input bit depth (%d) must be between 8 and 16\n",
                      pic_in->bitDepth);
             return -1;
         }
 
-        Frame *inFrame;
+        Frame *inFrame; //即将create 用于存储视频帧
         x265_param* p = (m_reconfigure || m_reconfigureRc) ? m_latestParam : m_param;
-        if (m_dpb->m_freeList.empty())
+		//给inFrame赋值
+        if (m_dpb->m_freeList.empty())  //m_freeList为空 一般一开始会一直进入，随后只进入else
         {
             inFrame = new Frame;
             inFrame->m_encodeStartTime = x265_mdate();
@@ -1045,7 +1046,7 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
                  * allocated by this top level encoder */
                 if (m_sps.cuOffsetY)
                 {
-                    inFrame->m_fencPic->m_cuOffsetY = m_sps.cuOffsetY;
+                    inFrame->m_fencPic->m_cuOffsetY = m_sps.cuOffsetY;//空间为一帧LCU个数，按照行列对应色度LCU的pixel地址
                     inFrame->m_fencPic->m_buOffsetY = m_sps.buOffsetY;
                     if (m_param->internalCsp != X265_CSP_I400)
                     {
@@ -1088,7 +1089,7 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
         }
         else
         {
-            inFrame = m_dpb->m_freeList.popBack();
+            inFrame = m_dpb->m_freeList.popBack(); //直接从buf中获取空间 ？？？
             inFrame->m_encodeStartTime = x265_mdate();
             /* Set lowres scencut and satdCost here to aovid overwriting ANALYSIS_READ
                decision by lowres init*/
@@ -1100,10 +1101,10 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
         /* Copy input picture into a Frame and PicYuv, send to lookahead */
         inFrame->m_fencPic->copyFromPicture(*pic_in, *m_param, m_sps.conformanceWindow.rightOffset, m_sps.conformanceWindow.bottomOffset);
 
-        inFrame->m_poc       = ++m_pocLast;
-        inFrame->m_userData  = pic_in->userData;
-        inFrame->m_pts       = pic_in->pts;
-        inFrame->m_forceqp   = pic_in->forceqp;
+        inFrame->m_poc       = ++m_pocLast;  //累加读入帧数
+        inFrame->m_userData  = pic_in->userData; //一般都为0???
+        inFrame->m_pts       = pic_in->pts;  //一般就是对应poc的值（也可以赋值传入的pts号）
+        inFrame->m_forceqp   = pic_in->forceqp;  //qpfile 一般为0
         inFrame->m_param     = (m_reconfigure || m_reconfigureRc) ? m_latestParam : m_param;
         if (m_param->bField && m_param->interlaceMode)
             inFrame->m_fieldNum = pic_in->fieldNum;
@@ -1129,12 +1130,12 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
         }
 
         if (m_pocLast == 0)
-            m_firstPts = inFrame->m_pts;
+            m_firstPts = inFrame->m_pts; //第一帧，其值等于最先进入的pts号(一般等于0)
         if (m_bframeDelay && m_pocLast == m_bframeDelay)
-            m_bframeDelayTime = inFrame->m_pts - m_firstPts;
+            m_bframeDelayTime = inFrame->m_pts - m_firstPts;  //只进入一次，计算延迟的pts号个数
 
         /* Encoder holds a reference count until stats collection is finished */
-        ATOMIC_INC(&inFrame->m_countRefEncoders);
+        ATOMIC_INC(&inFrame->m_countRefEncoders); //将当前的被参考次数设置为1 防止后面被释放 此处值为1
 
         if ((m_param->rc.aqMode || m_param->bEnableWeightedPred || m_param->bEnableWeightedBiPred) &&
             (m_param->rc.cuTree && m_param->rc.bStatRead))
@@ -1231,17 +1232,17 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
         if (m_reconfigureRc)
             inFrame->m_reconfigureRc = true;
 
-        m_lookahead->addPicture(*inFrame, sliceType);
-        m_numDelayedPic++;
-    }
+        m_lookahead->addPicture(*inFrame, sliceType); //向输入列表中添加原始帧准备帧类型决策，在buffer满时，触发帧类型决策
+        m_numDelayedPic++; //当前列表中有多少帧未编码 每当读入一帧++，每当编码完毕一帧减--
+    }//if (pic_in)
     else if (m_latestParam->forceFlush == 2)
         m_lookahead->m_filled = true;
     else
         m_lookahead->flush();
 
-    FrameEncoder *curEncoder = m_frameEncoder[m_curEncoder];
-    m_curEncoder = (m_curEncoder + 1) % m_param->frameNumThreads;
-    int ret = 0;
+    FrameEncoder *curEncoder = m_frameEncoder[m_curEncoder]; // 获取当前frameEncoder
+    m_curEncoder = (m_curEncoder + 1) % m_param->frameNumThreads; // 记录下一个frameEncoder
+    int ret = 0; //返回是否已经编码过一帧，返回值0或者1
 
     /* Normal operation is to wait for the current frame encoder to complete its current frame
      * and then to give it a new frame to work on.  In zero-latency mode, we must encode this
@@ -1249,14 +1250,14 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
      * us to alternate the order of the calls without ugly code replication */
     Frame* outFrame = NULL;
     Frame* frameEnc = NULL;
-    int pass = 0;
-    do
+    int pass = 0; //零延迟情况：有两个取值（0,1） 0表示读帧类型决定完毕的帧准备编码 1表示编码完毕写数据 其他情况：只有一个取值0
+    do //循环功能：零延迟情况：pass=0 编码 pass =1 编码完毕写数据 循环两次   其它情况：只做一次 多线程控制编码与写数据
     {
         /* getEncodedPicture() should block until the FrameEncoder has completed
          * encoding the frame.  This is how back-pressure through the API is
          * accomplished when the encoder is full */
-        if (!m_bZeroLatency || pass)
-            outFrame = curEncoder->getEncodedPicture(m_nalList);
+        if (!m_bZeroLatency || pass) //零延迟情况：只有在pass=1的时候才会进入  其它情况：都进入
+            outFrame = curEncoder->getEncodedPicture(m_nalList);  //等待FrameEncoder::threadMain()执行完毕，赋值已编码图像地址给outFrame，一帧图像已经编码完成
         if (outFrame)
         {
             Slice *slice = outFrame->m_encData->m_slice;
@@ -1266,7 +1267,8 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
             if ((m_param->analysisLoad && !m_param->analysisSave) || ((m_param->bAnalysisType == AVC_INFO) && slice->m_sliceType != I_SLICE))
                 x265_free_analysis_data(m_param, &outFrame->m_analysisData);
 
-            if (pic_out)
+			//提取已编码帧的信息
+            if (pic_out) 
             {
                 PicYuv *recpic = outFrame->m_reconPic;
                 pic_out->poc = slice->m_poc;
@@ -1456,10 +1458,10 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
 
         /* pop a single frame from decided list, then provide to frame encoder
          * curEncoder is guaranteed to be idle at this point */
-        if (!pass)
-            frameEnc = m_lookahead->getDecidedPicture();
+        if (!pass)//零延迟情况：只有在pass=0的时候才会进入  其它情况：都进入
+            frameEnc = m_lookahead->getDecidedPicture();//获取已经得到帧类型的原始帧
         if (frameEnc && !pass && (!m_param->chunkEnd || (m_encodedFrameNum < m_param->chunkEnd)))
-        {
+        {//零延迟情况：只有在pass=0并且有可用帧的时候才会进入  其它情况：在有可用帧的时候进入
             if (m_param->analysisMultiPassRefine || m_param->analysisMultiPassDistortion)
             {
                 uint32_t widthInCU = (m_param->sourceWidth + m_param->maxCUSize - 1) >> m_param->maxLog2CUSize;
@@ -1511,13 +1513,13 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
             }
             else
             {
-                frameEnc->allocEncodeData(m_reconfigure ? m_latestParam : m_param, m_sps);
-                Slice* slice = frameEnc->m_encData->m_slice;
-                slice->m_sps = &m_sps;
-                slice->m_pps = &m_pps;
+                frameEnc->allocEncodeData(m_reconfigure ? m_latestParam : m_param, m_sps);//申请重构帧内存并初始化为0，申请一帧CTU的存储空间，初始化CTU、初始化统计信息
+                Slice* slice = frameEnc->m_encData->m_slice; //获取slice指针
+                slice->m_sps = &m_sps;//获取SPS指针
+                slice->m_pps = &m_pps;//获取PPS指针
                 slice->m_param = m_param;
-                slice->m_maxNumMergeCand = m_param->maxNumMergeCand;
-                slice->m_endCUAddr = slice->realEndAddress(m_sps.numCUsInFrame * m_param->num4x4Partitions);
+                slice->m_maxNumMergeCand = m_param->maxNumMergeCand; //获取配置的Merge选择的候选个数
+                slice->m_endCUAddr = slice->realEndAddress(m_sps.numCUsInFrame * m_param->num4x4Partitions);//一帧中最后实际像素在帧中的4x4块标号+1
             }
             if (m_param->analysisLoad && m_param->bDisableLookahead)
             {
@@ -1588,20 +1590,20 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
             frameEnc->m_encData->m_slice->numRefIdxDefault[1] = m_pps.numRefIdxDefault[1];
             frameEnc->m_encData->m_slice->m_iNumRPSInSPS = m_sps.spsrpsNum;
 
-            curEncoder->m_rce.encodeOrder = frameEnc->m_encodeOrder = m_encodedFrameNum++;
+            curEncoder->m_rce.encodeOrder = frameEnc->m_encodeOrder = m_encodedFrameNum++; //获取当前编码顺序（从0开始计数）
 
             if (!m_param->analysisLoad || !m_param->bDisableLookahead)
             {
-                if (m_bframeDelay)
+                if (m_bframeDelay) //有延迟 （获取DTS）
                 {
                     int64_t *prevReorderedPts = m_prevReorderedPts;
                     frameEnc->m_dts = m_encodedFrameNum > m_bframeDelay
-                        ? prevReorderedPts[(m_encodedFrameNum - m_bframeDelay) % m_bframeDelay]
+                        ? prevReorderedPts[(m_encodedFrameNum - m_bframeDelay) % m_bframeDelay] //在开始不多于延迟帧数的时候需要计算，其它直接从数组中获取
                         : frameEnc->m_reorderedPts - m_bframeDelayTime;
                     prevReorderedPts[m_encodedFrameNum % m_bframeDelay] = frameEnc->m_reorderedPts;
                 }
                 else
-                    frameEnc->m_dts = frameEnc->m_reorderedPts;
+                    frameEnc->m_dts = frameEnc->m_reorderedPts; //零延迟：解码顺序等于编码顺序
             }
 
             /* Allocate analysis data before encode in save mode. This is allocated in frameEnc */
@@ -1620,7 +1622,7 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
                 x265_alloc_analysis_data(m_param, analysis);
             }
             /* determine references, setup RPS, etc */
-            m_dpb->prepareEncode(frameEnc);
+            m_dpb->prepareEncode(frameEnc);//设置NAL单元类型，将待编码帧加入DPB列表，获取slice参考帧列表等slice参量，将该帧的参考帧的被参考次数加一
             if (!!m_param->selectiveSAO)
             {
                 Slice* slice = frameEnc->m_encData->m_slice;
@@ -1644,13 +1646,13 @@ int Encoder::encode(const x265_picture* pic_in, x265_picture* pic_out)
                 slice->m_bUseSao = curEncoder->m_frameFilter.m_useSao = 0;
             }
 
-            if (m_param->rc.rateControlMode != X265_RC_CQP)
-                m_lookahead->getEstimatedPictureCost(frameEnc);
+            if (m_param->rc.rateControlMode != X265_RC_CQP) //如果当前不是固定QP模式
+                m_lookahead->getEstimatedPictureCost(frameEnc); //获取当前帧每个CTU行对应下采样帧的每个8x8的块cost的累计值
             if (m_param->bIntraRefresh)
                  calcRefreshInterval(frameEnc);
 
             /* Allow FrameEncoder::compressFrame() to start in the frame encoder thread */
-            if (!curEncoder->startCompressFrame(frameEnc))
+            if (!curEncoder->startCompressFrame(frameEnc)) //触发compressframe()进行编码
                 m_aborted = true;
         }
         else if (m_encodedFrameNum)

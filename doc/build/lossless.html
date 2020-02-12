@@ -1,0 +1,265 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Lossless &#8212; x265  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SVT-HEVC" href="svthevc.html" />
+    <link rel="prev" title="Preset Options" href="presets.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="svthevc.html" title="SVT-HEVC"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="presets.html" title="Preset Options"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="lossless">
+<h1>Lossless<a class="headerlink" href="#lossless" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="lossless-encoding">
+<h2>Lossless Encoding<a class="headerlink" href="#lossless-encoding" title="Permalink to this headline">¶</a></h2>
+<p>x265 can encode HEVC bitstreams that are entirely lossless (the
+reconstructed images are bit-exact to the source images) by using the
+<a class="reference internal" href="cli.html#cmdoption-lossless"><code class="xref std std-option docutils literal notranslate"><span class="pre">--lossless</span></code></a> option.  Lossless operation is theoretically
+simple. Rate control, by definition, is disabled and the encoder
+disables all quality metrics since they would only waste CPU cycles.
+Instead, x265 reports only a compression factor at the end of the
+encode.</p>
+<p>In HEVC, lossless coding means bypassing both the DCT transforms and
+bypassing quantization (often referred to as transquant bypass).  Normal
+predictions are still allowed, so the encoder will find optimal inter or
+intra predictions and then losslessly code the residual (with transquant
+bypass).</p>
+<p>All <a class="reference internal" href="cli.html#cmdoption-preset"><code class="xref std std-option docutils literal notranslate"><span class="pre">--preset</span></code></a> options are capable of generating lossless video
+streams, but in general the slower the preset the better the compression
+ratio (and the slower the encode). Here are some examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">ultrafast</span> <span class="o">--</span><span class="n">lossless</span>
+<span class="o">...</span> <span class="o">&lt;</span><span class="n">snip</span><span class="o">&gt;</span> <span class="o">...</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">238.38</span><span class="n">s</span> <span class="p">(</span><span class="mf">3.02</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">57457.94</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">faster</span> <span class="o">--</span><span class="n">lossless</span>
+<span class="o">...</span> <span class="o">&lt;</span><span class="n">snip</span><span class="o">&gt;</span> <span class="o">...</span>
+<span class="n">x265</span> <span class="p">[</span><span class="n">info</span><span class="p">]:</span> <span class="n">lossless</span> <span class="n">compression</span> <span class="n">ratio</span> <span class="mf">3.11</span><span class="p">::</span><span class="mi">1</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">258.46</span><span class="n">s</span> <span class="p">(</span><span class="mf">2.79</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">56787.65</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">slow</span> <span class="o">--</span><span class="n">lossless</span>
+<span class="o">...</span> <span class="o">&lt;</span><span class="n">snip</span><span class="o">&gt;</span> <span class="o">...</span>
+<span class="n">x265</span> <span class="p">[</span><span class="n">info</span><span class="p">]:</span> <span class="n">lossless</span> <span class="n">compression</span> <span class="n">ratio</span> <span class="mf">3.36</span><span class="p">::</span><span class="mi">1</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">576.73</span><span class="n">s</span> <span class="p">(</span><span class="mf">1.25</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">52668.25</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">veryslow</span> <span class="o">--</span><span class="n">lossless</span>
+<span class="n">x265</span> <span class="p">[</span><span class="n">info</span><span class="p">]:</span> <span class="n">lossless</span> <span class="n">compression</span> <span class="n">ratio</span> <span class="mf">3.76</span><span class="p">::</span><span class="mi">1</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">6298.22</span><span class="n">s</span> <span class="p">(</span><span class="mf">0.11</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">47008.65</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In HEVC, only QP=4 is truly lossless quantization, and thus when
+encoding losslesly x265 uses QP=4 internally in its RDO decisions.</p>
+</div>
+</div>
+<div class="section" id="near-lossless-encoding">
+<h2>Near-lossless Encoding<a class="headerlink" href="#near-lossless-encoding" title="Permalink to this headline">¶</a></h2>
+<p>Near-lossless conditions are a quite a bit more interesting.  Normal ABR
+rate control will allow one to scale the bitrate up to the point where
+quantization is entirely bypassed (QP &lt;= 4), but even at this point
+there is a lot of SSIM left on the table because of the DCT transforms,
+which are not lossless:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">medium</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">40000</span> <span class="o">--</span><span class="n">ssim</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">326.62</span><span class="n">s</span> <span class="p">(</span><span class="mf">2.21</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">39750.56</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9990703</span> <span class="p">(</span><span class="mf">30.317</span> <span class="n">dB</span><span class="p">)</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">medium</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">50000</span> <span class="o">--</span><span class="n">ssim</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">349.27</span><span class="n">s</span> <span class="p">(</span><span class="mf">2.06</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">44326.84</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9994134</span> <span class="p">(</span><span class="mf">32.316</span> <span class="n">dB</span><span class="p">)</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">medium</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">60000</span> <span class="o">--</span><span class="n">ssim</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">360.04</span><span class="n">s</span> <span class="p">(</span><span class="mf">2.00</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">45394.50</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9994823</span> <span class="p">(</span><span class="mf">32.859</span> <span class="n">dB</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the encoder to get over this quality plateau, one must enable
+lossless coding at the CU level with <a class="reference internal" href="cli.html#cmdoption-cu-lossless"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cu-lossless</span></code></a>.  It tells
+the encoder to evaluate trans-quant bypass as a coding option for each
+CU, and to pick the option with the best rate-distortion
+characteristics.</p>
+<p>The <a class="reference internal" href="cli.html#cmdoption-cu-lossless"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cu-lossless</span></code></a> option is very expensive, computationally,
+and it only has a positive effect when the QP is extremely low, allowing
+RDO to spend a large amount of bits to make small improvements to
+quality.  So this option should only be enabled when you are encoding
+near-lossless bitstreams:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">medium</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">40000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">500.51</span><span class="n">s</span> <span class="p">(</span><span class="mf">1.44</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">40017.10</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9997790</span> <span class="p">(</span><span class="mf">36.557</span> <span class="n">dB</span><span class="p">)</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">medium</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">50000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">524.60</span><span class="n">s</span> <span class="p">(</span><span class="mf">1.37</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">46083.37</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9999432</span> <span class="p">(</span><span class="mf">42.456</span> <span class="n">dB</span><span class="p">)</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">medium</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">60000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">523.63</span><span class="n">s</span> <span class="p">(</span><span class="mf">1.38</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">46552.92</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9999489</span> <span class="p">(</span><span class="mf">42.917</span> <span class="n">dB</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is not unusual for bitrate to drop as you increase lossless coding.
+Having “perfectly coded” reference blocks reduces residual in later
+frames. It is quite possible for a near-lossless encode to spend
+more bits than a lossless encode.</p>
+</div>
+<p>Enabling psycho-visual rate distortion will improve lossless coding.
+<a class="reference internal" href="cli.html#cmdoption-psy-rd"><code class="xref std std-option docutils literal notranslate"><span class="pre">--psy-rd</span></code></a> influences the RDO decisions in favor of energy
+(detail) preservation over bit cost and results in more blocks being
+losslessly coded.  Our psy-rd feature is not yet assembly optimized, so
+this makes the encodes run even slower:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">medium</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">40000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span> <span class="o">--</span><span class="n">psy</span><span class="o">-</span><span class="n">rd</span> <span class="mf">1.0</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">581.83</span><span class="n">s</span> <span class="p">(</span><span class="mf">1.24</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">40112.15</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9998632</span> <span class="p">(</span><span class="mf">38.638</span> <span class="n">dB</span><span class="p">)</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">medium</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">50000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span> <span class="o">--</span><span class="n">psy</span><span class="o">-</span><span class="n">rd</span> <span class="mf">1.0</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">587.54</span><span class="n">s</span> <span class="p">(</span><span class="mf">1.23</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">46284.55</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9999663</span> <span class="p">(</span><span class="mf">44.721</span> <span class="n">dB</span><span class="p">)</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">medium</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">60000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span> <span class="o">--</span><span class="n">psy</span><span class="o">-</span><span class="n">rd</span> <span class="mf">1.0</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">592.93</span><span class="n">s</span> <span class="p">(</span><span class="mf">1.22</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">46839.51</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9999707</span> <span class="p">(</span><span class="mf">45.334</span> <span class="n">dB</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="cli.html#cmdoption-cu-lossless"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cu-lossless</span></code></a> will also be more effective at slower
+presets which perform RDO at more levels and thus may find smaller
+blocks that would benefit from lossless coding:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">veryslow</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">40000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">12969.25</span><span class="n">s</span> <span class="p">(</span><span class="mf">0.06</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">37331.96</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9998108</span> <span class="p">(</span><span class="mf">37.231</span> <span class="n">dB</span><span class="p">)</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">veryslow</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">50000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">46217.84</span><span class="n">s</span> <span class="p">(</span><span class="mf">0.05</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">42976.28</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9999482</span> <span class="p">(</span><span class="mf">42.856</span> <span class="n">dB</span><span class="p">)</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">veryslow</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">60000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">13738.17</span><span class="n">s</span> <span class="p">(</span><span class="mf">0.05</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">43864.21</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9999633</span> <span class="p">(</span><span class="mf">44.348</span> <span class="n">dB</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And with psy-rd and a slow preset together, very high SSIMs are
+possible:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">veryslow</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">40000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span> <span class="o">--</span><span class="n">psy</span><span class="o">-</span><span class="n">rd</span> <span class="mf">1.0</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">11675.81</span><span class="n">s</span> <span class="p">(</span><span class="mf">0.06</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">37819.45</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9999181</span> <span class="p">(</span><span class="mf">40.867</span> <span class="n">dB</span><span class="p">)</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">veryslow</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">50000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span> <span class="o">--</span><span class="n">psy</span><span class="o">-</span><span class="n">rd</span> <span class="mf">1.0</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">12414.56</span><span class="n">s</span> <span class="p">(</span><span class="mf">0.06</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">42815.75</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9999758</span> <span class="p">(</span><span class="mf">46.168</span> <span class="n">dB</span><span class="p">)</span>
+
+<span class="o">./</span><span class="n">x265</span> <span class="o">../</span><span class="n">test</span><span class="o">-</span><span class="mi">720</span><span class="n">p</span><span class="o">.</span><span class="n">y4m</span> <span class="n">o</span><span class="o">.</span><span class="n">bin</span> <span class="o">--</span><span class="n">preset</span> <span class="n">veryslow</span> <span class="o">--</span><span class="n">bitrate</span> <span class="mi">60000</span> <span class="o">--</span><span class="n">ssim</span> <span class="o">--</span><span class="n">cu</span><span class="o">-</span><span class="n">lossless</span> <span class="o">--</span><span class="n">psy</span><span class="o">-</span><span class="n">rd</span> <span class="mf">1.0</span>
+<span class="n">encoded</span> <span class="mi">721</span> <span class="n">frames</span> <span class="ow">in</span> <span class="mf">11684.89</span><span class="n">s</span> <span class="p">(</span><span class="mf">0.06</span> <span class="n">fps</span><span class="p">),</span> <span class="mf">43324.48</span> <span class="n">kb</span><span class="o">/</span><span class="n">s</span><span class="p">,</span> <span class="n">SSIM</span> <span class="n">Mean</span> <span class="n">Y</span><span class="p">:</span> <span class="mf">0.9999793</span> <span class="p">(</span><span class="mf">46.835</span> <span class="n">dB</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It’s important to note in the end that it is easier (less work) for the
+encoder to encode the video losslessly than it is to encode it
+near-losslessly. If the encoder knows up front the encode must be
+lossless, it does not need to evaluate any lossy coding methods. The
+encoder only needs to find the most efficient prediction for each block
+and then entropy code the residual.</p>
+<p>It is not feasible for <a class="reference internal" href="cli.html#cmdoption-cu-lossless"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cu-lossless</span></code></a> to turn itself on when
+the encoder determines it is encoding a near-lossless bitstream (ie:
+when rate control nearly disables all quantization) because the feature
+requires a flag to be enabled in the stream headers. At the time the
+stream headers are being coded we do not know whether
+<a class="reference internal" href="cli.html#cmdoption-cu-lossless"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cu-lossless</span></code></a> would be a help or a hinder.  If very few or no
+blocks end up being coded as lossless, then having the feature enabled
+is a net loss in compression efficiency because it adds a flag that must
+be coded for every CU. So ignoring even the performance aspects of the
+feature, it can be a compression loss if enabled without being used. So
+it is up to the user to only enable this feature when they are coding at
+near-lossless quality.</p>
+</div>
+<div class="section" id="transform-skip">
+<h2>Transform Skip<a class="headerlink" href="#transform-skip" title="Permalink to this headline">¶</a></h2>
+<p>A somewhat related feature, <a class="reference internal" href="cli.html#cmdoption-tskip"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tskip</span></code></a> tells the encoder to
+evaluate transform-skip (bypass DCT but with quantization still enabled)
+when coding small 4x4 transform blocks. This feature is intended to
+improve the coding efficiency of screen content (aka: text on a screen)
+and is not really intended for lossless coding.  This feature should
+only be enabled if the content has a lot of very sharp edges in it, and
+is mostly unrelated to lossless coding.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Lossless</a><ul>
+<li><a class="reference internal" href="#lossless-encoding">Lossless Encoding</a></li>
+<li><a class="reference internal" href="#near-lossless-encoding">Near-lossless Encoding</a></li>
+<li><a class="reference internal" href="#transform-skip">Transform Skip</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="presets.html"
+                        title="previous chapter">Preset Options</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="svthevc.html"
+                        title="next chapter">SVT-HEVC</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/lossless.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="svthevc.html" title="SVT-HEVC"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="presets.html" title="Preset Options"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014 MulticoreWare Inc.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
+    </div>
+  </body>
+</html>

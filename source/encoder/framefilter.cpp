@@ -227,6 +227,7 @@ void FrameFilter::init(Encoder *top, FrameEncoder *frame, int numRows, uint32_t 
 
 }
 
+/*compressFrame()ÖÐµ÷ÓÃ*/
 void FrameFilter::start(Frame *frame, Entropy& initState)
 {
     m_frame = frame;

@@ -587,6 +587,7 @@ void Entropy::codeAUD(const Slice& slice)
     WRITE_CODE(picType, 3, "pic_type");
 }
 
+/*compressFrame()中调用*/
 void Entropy::codeSliceHeader(const Slice& slice, FrameData& encData, uint32_t slice_addr, uint32_t slice_addr_bits, int sliceQp)
 {
     WRITE_FLAG((slice_addr == 0 ? 1 : 0), "first_slice_segment_in_pic_flag");
@@ -1315,6 +1316,7 @@ static void initBuffer(uint8_t* contextModel, SliceType sliceType, int qp, uint8
         contextModel[n] = sbacInit(qp, ctxModel[n]);
 }
 
+/*compressFrame()中调用*/
 void Entropy::resetEntropy(const Slice& slice)
 {
     int  qp              = slice.m_sliceQp;

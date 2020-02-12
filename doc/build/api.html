@@ -1,0 +1,674 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Application Programming Interface &#8212; x265  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Threading" href="threading.html" />
+    <link rel="prev" title="Command Line Options" href="cli.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="threading.html" title="Threading"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cli.html" title="Command Line Options"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="application-programming-interface">
+<h1>Application Programming Interface<a class="headerlink" href="#application-programming-interface" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>x265 is written primarily in C++ and x86 assembly language but the
+public facing programming interface is C for the widest possible
+portability.  This C interface is wholly defined within <code class="file docutils literal notranslate"><span class="pre">x265.h</span></code>
+in the source/ folder of our source tree.  All of the functions and
+variables and enumerations meant to be used by the end-user are present
+in this header.</p>
+<p>Where possible, x265 has tried to keep its public API as close as
+possible to x264’s public API. So those familiar with using x264 through
+its C interface will find x265 quite familiar.</p>
+<p>This file is meant to be read in-order; the narrative follows linearly
+through the various sections</p>
+</div>
+<div class="section" id="build-considerations">
+<h2>Build Considerations<a class="headerlink" href="#build-considerations" title="Permalink to this headline">¶</a></h2>
+<p>The choice of Main or Main10 profile encodes is made at compile time;
+the internal pixel depth influences a great deal of variable sizes and
+thus 8 and 10bit pixels are handled as different build options
+(primarily to maintain the performance of the 8bit builds). libx265
+exports a variable <strong>x265_max_bit_depth</strong> which indicates how the
+library was compiled (it will contain a value of 8 or 10). Further,
+<strong>x265_version_str</strong> is a pointer to a string indicating the version of
+x265 which was compiled, and <strong>x265_build_info_str</strong> is a pointer to a
+string identifying the compiler and build options.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>x265_version_str</strong> is only updated when <strong>cmake</strong> runs. If you are
+making binaries for others to use, it is recommended to run
+<strong>cmake</strong> prior to <strong>make</strong> in your build scripts.</p>
+</div>
+<p>x265 will accept input pixels of any depth between 8 and 16 bits
+regardless of the depth of its internal pixels (8 or 10).  It will shift
+and mask input pixels as required to reach the internal depth. If
+downshifting is being performed using our CLI application (to 8 bits),
+the <a class="reference internal" href="cli.html#cmdoption-dither"><code class="xref std std-option docutils literal notranslate"><span class="pre">--dither</span></code></a> option may be enabled to reduce banding. This
+feature is not available through the C interface.</p>
+</div>
+<div class="section" id="encoder">
+<h2>Encoder<a class="headerlink" href="#encoder" title="Permalink to this headline">¶</a></h2>
+<p>The primary object in x265 is the encoder object, and this is
+represented in the public API as an opaque typedef <strong>x265_encoder</strong>.
+Pointers of this type are passed to most encoder functions.</p>
+<p>A single encoder generates a single output bitstream from a sequence of
+raw input pictures.  Thus if you need multiple output bitstreams you
+must allocate multiple encoders.  You may pass the same input pictures
+to multiple encoders, the encode function does not modify the input
+picture structures (the pictures are copied into the encoder as the
+first step of encode).</p>
+<p>Encoder allocation is a reentrant function, so multiple encoders may be
+safely allocated in a single process. The encoder access functions are
+not reentrant for a single encoder, so the recommended use case is to
+allocate one client thread per encoder instance (one thread for all
+encoder instances is possible, but some encoder access functions are
+blocking and thus this would be less efficient).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is one caveat to having multiple encoders within a single
+process. All of the encoders must use the same maximum CTU size
+because many global variables are configured based on this size.
+Encoder allocation will fail if a mis-matched CTU size is attempted.
+If no encoders are open, <strong>x265_cleanup()</strong> can be called to reset
+the configured CTU size so a new size can be used.</p>
+</div>
+<p>An encoder is allocated by calling <strong>x265_encoder_open()</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_encoder_open</span><span class="p">:</span>
+ <span class="o">*</span>      <span class="n">create</span> <span class="n">a</span> <span class="n">new</span> <span class="n">encoder</span> <span class="n">handler</span><span class="p">,</span> <span class="nb">all</span> <span class="n">parameters</span> <span class="kn">from</span> <span class="nn">x265_param</span> <span class="n">are</span> <span class="n">copied</span> <span class="o">*/</span>
+<span class="n">x265_encoder</span><span class="o">*</span> <span class="n">x265_encoder_open</span><span class="p">(</span><span class="n">x265_param</span> <span class="o">*</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The returned pointer is then passed to all of the functions pertaining
+to this encode. A large amount of memory is allocated during this
+function call, but the encoder will continue to allocate memory as the
+first pictures are passed to the encoder; until its pool of picture
+structures is large enough to handle all of the pictures it must keep
+internally.  The pool size is determined by the lookahead depth, the
+number of frame threads, and the maximum number of references.</p>
+<p>As indicated in the comment, <strong>x265_param</strong> is copied internally so the user
+may release their copy after allocating the encoder.  Changes made to
+their copy of the param structure have no affect on the encoder after it
+has been allocated.</p>
+</div>
+<div class="section" id="param">
+<h2>Param<a class="headerlink" href="#param" title="Permalink to this headline">¶</a></h2>
+<p>The <strong>x265_param</strong> structure describes everything the encoder needs to
+know about the input pictures and the output bitstream and most
+everything in between.</p>
+<p>The recommended way to handle these param structures is to allocate them
+from libx265 via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_param_alloc</span><span class="p">:</span>
+ <span class="o">*</span>  <span class="n">Allocates</span> <span class="n">an</span> <span class="n">x265_param</span> <span class="n">instance</span><span class="o">.</span> <span class="n">The</span> <span class="n">returned</span> <span class="n">param</span> <span class="n">structure</span> <span class="ow">is</span> <span class="ow">not</span>
+ <span class="o">*</span>  <span class="n">special</span> <span class="ow">in</span> <span class="nb">any</span> <span class="n">way</span><span class="p">,</span> <span class="n">but</span> <span class="n">using</span> <span class="n">this</span> <span class="n">method</span> <span class="n">together</span> <span class="k">with</span> <span class="n">x265_param_free</span><span class="p">()</span>
+ <span class="o">*</span>  <span class="ow">and</span> <span class="n">x265_param_parse</span><span class="p">()</span> <span class="n">to</span> <span class="nb">set</span> <span class="n">values</span> <span class="n">by</span> <span class="n">name</span> <span class="n">allows</span> <span class="n">the</span> <span class="n">application</span> <span class="n">to</span> <span class="n">treat</span>
+ <span class="o">*</span>  <span class="n">x265_param</span> <span class="k">as</span> <span class="n">an</span> <span class="n">opaque</span> <span class="n">data</span> <span class="n">struct</span> <span class="k">for</span> <span class="n">version</span> <span class="n">safety</span> <span class="o">*/</span>
+<span class="n">x265_param</span> <span class="o">*</span><span class="n">x265_param_alloc</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>In this way, your application does not need to know the exact size of
+the param structure (the build of x265 could potentially be a bit newer
+than the copy of <code class="file docutils literal notranslate"><span class="pre">x265.h</span></code> that your application compiled against).</p>
+<p>Next you perform the initial <em>rough cut</em> configuration of the encoder by
+chosing a performance preset and optional tune factor
+<strong>x265_preset_names</strong> and <strong>x265_tune_names</strong> respectively hold the
+string names of the presets and tune factors (see <span class="xref std std-ref">presets</span> for more detail on presets and tune factors):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span>      <span class="n">returns</span> <span class="mi">0</span> <span class="n">on</span> <span class="n">success</span><span class="p">,</span> <span class="n">negative</span> <span class="n">on</span> <span class="n">failure</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">invalid</span> <span class="n">preset</span><span class="o">/</span><span class="n">tune</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span> <span class="o">*/</span>
+<span class="nb">int</span> <span class="n">x265_param_default_preset</span><span class="p">(</span><span class="n">x265_param</span> <span class="o">*</span><span class="p">,</span> <span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">preset</span><span class="p">,</span> <span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">tune</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Now you may optionally specify a profile. <strong>x265_profile_names</strong>
+contains the string names this function accepts:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span>      <span class="p">(</span><span class="n">can</span> <span class="n">be</span> <span class="n">NULL</span><span class="p">,</span> <span class="ow">in</span> <span class="n">which</span> <span class="n">case</span> <span class="n">the</span> <span class="n">function</span> <span class="n">will</span> <span class="n">do</span> <span class="n">nothing</span><span class="p">)</span>
+ <span class="o">*</span>      <span class="n">returns</span> <span class="mi">0</span> <span class="n">on</span> <span class="n">success</span><span class="p">,</span> <span class="n">negative</span> <span class="n">on</span> <span class="n">failure</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">invalid</span> <span class="n">profile</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span> <span class="o">*/</span>
+<span class="nb">int</span> <span class="n">x265_param_apply_profile</span><span class="p">(</span><span class="n">x265_param</span> <span class="o">*</span><span class="p">,</span> <span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">profile</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Finally you configure any remaining options by name using repeated calls to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_param_parse</span><span class="p">:</span>
+ <span class="o">*</span>  <span class="nb">set</span> <span class="n">one</span> <span class="n">parameter</span> <span class="n">by</span> <span class="n">name</span><span class="o">.</span>
+ <span class="o">*</span>  <span class="n">returns</span> <span class="mi">0</span> <span class="n">on</span> <span class="n">success</span><span class="p">,</span> <span class="ow">or</span> <span class="n">returns</span> <span class="n">one</span> <span class="n">of</span> <span class="n">the</span> <span class="n">following</span> <span class="n">errors</span><span class="o">.</span>
+ <span class="o">*</span>  <span class="n">note</span><span class="p">:</span> <span class="n">BAD_VALUE</span> <span class="n">occurs</span> <span class="n">only</span> <span class="k">if</span> <span class="n">it</span> <span class="n">can</span><span class="s1">&#39;t even parse the value,</span>
+ <span class="o">*</span>  <span class="n">numerical</span> <span class="nb">range</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">checked</span> <span class="n">until</span> <span class="n">x265_encoder_open</span><span class="p">()</span><span class="o">.</span>
+ <span class="o">*</span>  <span class="n">value</span><span class="o">=</span><span class="n">NULL</span> <span class="n">means</span> <span class="s2">&quot;true&quot;</span> <span class="k">for</span> <span class="n">boolean</span> <span class="n">options</span><span class="p">,</span> <span class="n">but</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">BAD_VALUE</span> <span class="k">for</span> <span class="n">non</span><span class="o">-</span><span class="n">booleans</span><span class="o">.</span> <span class="o">*/</span>
+<span class="c1">#define X265_PARAM_BAD_NAME  (-1)</span>
+<span class="c1">#define X265_PARAM_BAD_VALUE (-2)</span>
+<span class="nb">int</span> <span class="n">x265_param_parse</span><span class="p">(</span><span class="n">x265_param</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">name</span><span class="p">,</span> <span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">value</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="cli.html#string-options-ref"><span class="std std-ref">string options</span></a> for the list of options (and their
+descriptions) which can be set by <strong>x265_param_parse()</strong>.</p>
+<p>After the encoder has been created, you may release the param structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_param_free</span><span class="p">:</span>
+ <span class="o">*</span>  <span class="n">Use</span> <span class="n">x265_param_free</span><span class="p">()</span> <span class="n">to</span> <span class="n">release</span> <span class="n">storage</span> <span class="k">for</span> <span class="n">an</span> <span class="n">x265_param</span> <span class="n">instance</span>
+ <span class="o">*</span>  <span class="n">allocated</span> <span class="n">by</span> <span class="n">x265_param_alloc</span><span class="p">()</span> <span class="o">*/</span>
+<span class="n">void</span> <span class="n">x265_param_free</span><span class="p">(</span><span class="n">x265_param</span> <span class="o">*</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Using these methods to allocate and release the param structures
+helps future-proof your code in many ways, but the x265 API is
+versioned in such a way that we prevent linkage against a build of
+x265 that does not match the version of the header you are compiling
+against (unless you use x265_api_query() to acquire the library’s
+interfaces). This is function of the X265_BUILD macro.</p>
+</div>
+<p><strong>x265_encoder_parameters()</strong> may be used to get a copy of the param
+structure from the encoder after it has been opened, in order to see the
+changes made to the parameters for auto-detection and other reasons:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_encoder_parameters</span><span class="p">:</span>
+ <span class="o">*</span>      <span class="n">copies</span> <span class="n">the</span> <span class="n">current</span> <span class="n">internal</span> <span class="nb">set</span> <span class="n">of</span> <span class="n">parameters</span> <span class="n">to</span> <span class="n">the</span> <span class="n">pointer</span> <span class="n">provided</span>
+ <span class="o">*</span>      <span class="n">by</span> <span class="n">the</span> <span class="n">caller</span><span class="o">.</span>  <span class="n">useful</span> <span class="n">when</span> <span class="n">the</span> <span class="n">calling</span> <span class="n">application</span> <span class="n">needs</span> <span class="n">to</span> <span class="n">know</span>
+ <span class="o">*</span>      <span class="n">how</span> <span class="n">x265_encoder_open</span> <span class="n">has</span> <span class="n">changed</span> <span class="n">the</span> <span class="n">parameters</span><span class="o">.</span>
+ <span class="o">*</span>      <span class="n">note</span> <span class="n">that</span> <span class="n">the</span> <span class="n">data</span> <span class="n">accessible</span> <span class="n">through</span> <span class="n">pointers</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">returned</span> <span class="n">param</span> <span class="n">struct</span>
+ <span class="o">*</span>      <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">filenames</span><span class="p">)</span> <span class="n">should</span> <span class="ow">not</span> <span class="n">be</span> <span class="n">modified</span> <span class="n">by</span> <span class="n">the</span> <span class="n">calling</span> <span class="n">application</span><span class="o">.</span> <span class="o">*/</span>
+<span class="n">void</span> <span class="n">x265_encoder_parameters</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="p">,</span> <span class="n">x265_param</span> <span class="o">*</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><strong>x265_encoder_reconfig()</strong> may be used to reconfigure encoder parameters mid-encode:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_encoder_reconfig</span><span class="p">:</span>
+ <span class="o">*</span>       <span class="n">used</span> <span class="n">to</span> <span class="n">modify</span> <span class="n">encoder</span> <span class="n">parameters</span><span class="o">.</span>
+ <span class="o">*</span>      <span class="n">various</span> <span class="n">parameters</span> <span class="kn">from</span> <span class="nn">x265_param</span> <span class="n">are</span> <span class="n">copied</span><span class="o">.</span>
+ <span class="o">*</span>      <span class="n">this</span> <span class="n">takes</span> <span class="n">effect</span> <span class="n">immediately</span><span class="p">,</span> <span class="n">on</span> <span class="n">whichever</span> <span class="n">frame</span> <span class="ow">is</span> <span class="n">encoded</span> <span class="nb">next</span><span class="p">;</span>
+ <span class="o">*</span>      <span class="n">returns</span> <span class="n">negative</span> <span class="n">on</span> <span class="n">parameter</span> <span class="n">validation</span> <span class="n">error</span><span class="p">,</span> <span class="mi">0</span> <span class="n">on</span> <span class="n">successful</span> <span class="n">reconfigure</span>
+ <span class="o">*</span>      <span class="ow">and</span> <span class="mi">1</span> <span class="n">when</span> <span class="n">a</span> <span class="n">reconfigure</span> <span class="ow">is</span> <span class="n">already</span> <span class="ow">in</span> <span class="n">progress</span><span class="o">.</span>
+ <span class="o">*</span>
+ <span class="o">*</span>      <span class="ow">not</span> <span class="nb">all</span> <span class="n">parameters</span> <span class="n">can</span> <span class="n">be</span> <span class="n">changed</span><span class="p">;</span> <span class="n">see</span> <span class="n">the</span> <span class="n">actual</span> <span class="n">function</span> <span class="k">for</span> <span class="n">a</span>
+ <span class="o">*</span>      <span class="n">detailed</span> <span class="n">breakdown</span><span class="o">.</span>  <span class="n">since</span> <span class="ow">not</span> <span class="nb">all</span> <span class="n">parameters</span> <span class="n">can</span> <span class="n">be</span> <span class="n">changed</span><span class="p">,</span> <span class="n">moving</span>
+ <span class="o">*</span>      <span class="kn">from</span> <span class="nn">preset</span> <span class="n">to</span> <span class="n">preset</span> <span class="n">may</span> <span class="ow">not</span> <span class="n">always</span> <span class="n">fully</span> <span class="n">copy</span> <span class="nb">all</span> <span class="n">relevant</span> <span class="n">parameters</span><span class="p">,</span>
+ <span class="o">*</span>      <span class="n">but</span> <span class="n">should</span> <span class="n">still</span> <span class="n">work</span> <span class="n">usably</span> <span class="ow">in</span> <span class="n">practice</span><span class="o">.</span> <span class="n">however</span><span class="p">,</span> <span class="n">more</span> <span class="n">so</span> <span class="n">than</span> <span class="k">for</span>
+ <span class="o">*</span>      <span class="n">other</span> <span class="n">presets</span><span class="p">,</span> <span class="n">many</span> <span class="n">of</span> <span class="n">the</span> <span class="n">speed</span> <span class="n">shortcuts</span> <span class="n">used</span> <span class="ow">in</span> <span class="n">ultrafast</span> <span class="n">cannot</span> <span class="n">be</span>
+ <span class="o">*</span>      <span class="n">switched</span> <span class="n">out</span> <span class="n">of</span><span class="p">;</span> <span class="n">using</span> <span class="n">reconfig</span> <span class="n">to</span> <span class="n">switch</span> <span class="n">between</span> <span class="n">ultrafast</span> <span class="ow">and</span> <span class="n">other</span>
+ <span class="o">*</span>      <span class="n">presets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">recommended</span> <span class="n">without</span> <span class="n">a</span> <span class="n">more</span> <span class="n">fine</span><span class="o">-</span><span class="n">grained</span> <span class="n">breakdown</span> <span class="n">of</span>
+ <span class="o">*</span>      <span class="n">parameters</span> <span class="n">to</span> <span class="n">take</span> <span class="n">this</span> <span class="n">into</span> <span class="n">account</span><span class="o">.</span> <span class="o">*/</span>
+<span class="nb">int</span> <span class="n">x265_encoder_reconfig</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="p">,</span> <span class="n">x265_param</span> <span class="o">*</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><strong>x265_get_slicetype_poc_and_scenecut()</strong> may be used to fetch slice type, poc and scene cut information mid-encode:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_get_slicetype_poc_and_scenecut</span><span class="p">:</span>
+ <span class="o">*</span>     <span class="n">get</span> <span class="n">the</span> <span class="nb">slice</span> <span class="nb">type</span><span class="p">,</span> <span class="n">poc</span> <span class="ow">and</span> <span class="n">scene</span> <span class="n">cut</span> <span class="n">information</span> <span class="k">for</span> <span class="n">the</span> <span class="n">current</span> <span class="n">frame</span><span class="p">,</span>
+ <span class="o">*</span>     <span class="n">returns</span> <span class="n">negative</span> <span class="n">on</span> <span class="n">error</span><span class="p">,</span> <span class="mi">0</span> <span class="n">on</span> <span class="n">success</span><span class="o">.</span>
+ <span class="o">*</span>     <span class="n">This</span> <span class="n">API</span> <span class="n">must</span> <span class="n">be</span> <span class="n">called</span> <span class="n">after</span><span class="p">(</span><span class="n">poc</span> <span class="o">&gt;=</span> <span class="n">lookaheadDepth</span> <span class="o">+</span> <span class="n">bframes</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="n">condition</span> <span class="n">check</span><span class="o">.</span> <span class="o">*/</span>
+ <span class="nb">int</span> <span class="n">x265_get_slicetype_poc_and_scenecut</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="n">encoder</span><span class="p">,</span> <span class="nb">int</span> <span class="o">*</span><span class="n">slicetype</span><span class="p">,</span> <span class="nb">int</span> <span class="o">*</span><span class="n">poc</span><span class="p">,</span> <span class="nb">int</span><span class="o">*</span> <span class="n">sceneCut</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><strong>x265_get_ref_frame_list()</strong> may be used to fetch forward and backward refrence list:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_get_ref_frame_list</span><span class="p">:</span>
+ <span class="o">*</span>     <span class="n">returns</span> <span class="n">negative</span> <span class="n">on</span> <span class="n">error</span><span class="p">,</span> <span class="mi">0</span> <span class="n">when</span> <span class="n">access</span> <span class="n">unit</span> <span class="n">were</span> <span class="n">output</span><span class="o">.</span>
+ <span class="o">*</span>     <span class="n">This</span> <span class="n">API</span> <span class="n">must</span> <span class="n">be</span> <span class="n">called</span> <span class="n">after</span><span class="p">(</span><span class="n">poc</span> <span class="o">&gt;=</span> <span class="n">lookaheadDepth</span> <span class="o">+</span> <span class="n">bframes</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="n">condition</span> <span class="n">check</span> <span class="o">*/</span>
+ <span class="nb">int</span> <span class="n">x265_get_ref_frame_list</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="n">encoder</span><span class="p">,</span> <span class="n">x265_picyuv</span><span class="o">**</span><span class="p">,</span> <span class="n">x265_picyuv</span><span class="o">**</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="o">*</span><span class="p">,</span> <span class="nb">int</span><span class="o">*</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><strong>x265_encoder_ctu_info</strong> may be used to provide additional CTU-specific information to the encoder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_encoder_ctu_info</span><span class="p">:</span>
+ <span class="o">*</span>    <span class="n">Copy</span> <span class="n">CTU</span> <span class="n">information</span> <span class="n">such</span> <span class="k">as</span> <span class="n">ctu</span> <span class="n">address</span> <span class="ow">and</span> <span class="n">ctu</span> <span class="n">partition</span> <span class="n">structure</span> <span class="n">of</span> <span class="nb">all</span>
+ <span class="o">*</span>    <span class="n">CTUs</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">frame</span><span class="o">.</span> <span class="n">The</span> <span class="n">function</span> <span class="ow">is</span> <span class="n">invoked</span> <span class="n">only</span> <span class="k">if</span> <span class="s2">&quot;--ctu-info&quot;</span> <span class="ow">is</span> <span class="n">enabled</span> <span class="ow">and</span>
+ <span class="o">*</span>    <span class="n">the</span> <span class="n">encoder</span> <span class="n">will</span> <span class="n">wait</span> <span class="k">for</span> <span class="n">this</span> <span class="n">copy</span> <span class="n">to</span> <span class="n">complete</span> <span class="k">if</span> <span class="n">enabled</span><span class="o">.*/</span>
+<span class="nb">int</span> <span class="n">x265_encoder_ctu_info</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="n">encoder</span><span class="p">,</span> <span class="nb">int</span> <span class="n">poc</span><span class="p">,</span> <span class="n">x265_ctu_info_t</span><span class="o">**</span> <span class="n">ctu</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><strong>x265_set_analysis_data()</strong> may be used to recive analysis information from external application:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_set_analysis_data</span><span class="p">:</span>
+ <span class="o">*</span>     <span class="nb">set</span> <span class="n">the</span> <span class="n">analysis</span> <span class="n">data</span><span class="o">.</span> <span class="n">The</span> <span class="n">incoming</span> <span class="n">analysis_data</span> <span class="n">structure</span> <span class="ow">is</span> <span class="n">assumed</span> <span class="n">to</span> <span class="n">be</span> <span class="n">AVC</span><span class="o">-</span><span class="n">sized</span> <span class="n">blocks</span><span class="o">.</span>
+ <span class="o">*</span>     <span class="n">returns</span> <span class="n">negative</span> <span class="n">on</span> <span class="n">error</span><span class="p">,</span> <span class="mi">0</span> <span class="n">access</span> <span class="n">unit</span> <span class="n">were</span> <span class="n">output</span><span class="o">.*/</span>
+ <span class="nb">int</span> <span class="n">x265_set_analysis_data</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="n">encoder</span><span class="p">,</span> <span class="n">x265_analysis_data</span> <span class="o">*</span><span class="n">analysis_data</span><span class="p">,</span> <span class="nb">int</span> <span class="n">poc</span><span class="p">,</span> <span class="n">uint32_t</span> <span class="n">cuBytes</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><strong>x265_alloc_analysis_data()</strong> may be used to allocate memory for the x265_analysis_data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_alloc_analysis_data</span><span class="p">:</span>
+ <span class="o">*</span>     <span class="n">Allocate</span> <span class="n">memory</span> <span class="k">for</span> <span class="n">the</span> <span class="n">x265_analysis_data</span> <span class="nb">object</span><span class="s1">&#39;s internal structures. */</span>
+ <span class="n">void</span> <span class="n">x265_alloc_analysis_data</span><span class="p">(</span><span class="n">x265_param</span> <span class="o">*</span><span class="n">param</span><span class="p">,</span> <span class="n">x265_analysis_data</span><span class="o">*</span> <span class="n">analysis</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><strong>x265_free_analysis_data()</strong> may be used to free memory for the x265_analysis_data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_free_analysis_data</span><span class="p">:</span>
+ <span class="o">*</span>    <span class="n">Free</span> <span class="n">the</span> <span class="n">allocated</span> <span class="n">memory</span> <span class="k">for</span> <span class="n">x265_analysis_data</span> <span class="nb">object</span><span class="s1">&#39;s internal structures. */</span>
+ <span class="n">void</span> <span class="n">x265_free_analysis_data</span><span class="p">(</span><span class="n">x265_param</span> <span class="o">*</span><span class="n">param</span><span class="p">,</span> <span class="n">x265_analysis_data</span><span class="o">*</span> <span class="n">analysis</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pictures">
+<h2>Pictures<a class="headerlink" href="#pictures" title="Permalink to this headline">¶</a></h2>
+<p>Raw pictures are passed to the encoder via the <strong>x265_picture</strong> structure.
+Just like the param structure we recommend you allocate this structure
+from the encoder to avoid potential size mismatches:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_picture_alloc</span><span class="p">:</span>
+ <span class="o">*</span>  <span class="n">Allocates</span> <span class="n">an</span> <span class="n">x265_picture</span> <span class="n">instance</span><span class="o">.</span> <span class="n">The</span> <span class="n">returned</span> <span class="n">picture</span> <span class="n">structure</span> <span class="ow">is</span> <span class="ow">not</span>
+ <span class="o">*</span>  <span class="n">special</span> <span class="ow">in</span> <span class="nb">any</span> <span class="n">way</span><span class="p">,</span> <span class="n">but</span> <span class="n">using</span> <span class="n">this</span> <span class="n">method</span> <span class="n">together</span> <span class="k">with</span> <span class="n">x265_picture_free</span><span class="p">()</span>
+ <span class="o">*</span>  <span class="ow">and</span> <span class="n">x265_picture_init</span><span class="p">()</span> <span class="n">allows</span> <span class="n">some</span> <span class="n">version</span> <span class="n">safety</span><span class="o">.</span> <span class="n">New</span> <span class="n">picture</span> <span class="n">fields</span> <span class="n">will</span>
+ <span class="o">*</span>  <span class="n">always</span> <span class="n">be</span> <span class="n">added</span> <span class="n">to</span> <span class="n">the</span> <span class="n">end</span> <span class="n">of</span> <span class="n">x265_picture</span> <span class="o">*/</span>
+<span class="n">x265_picture</span> <span class="o">*</span><span class="n">x265_picture_alloc</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>Regardless of whether you allocate your picture structure this way or
+whether you simply declare it on the stack, your next step is to
+initialize the structure via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/***</span>
+ <span class="o">*</span> <span class="n">Initialize</span> <span class="n">an</span> <span class="n">x265_picture</span> <span class="n">structure</span> <span class="n">to</span> <span class="n">default</span> <span class="n">values</span><span class="o">.</span> <span class="n">It</span> <span class="n">sets</span> <span class="n">the</span> <span class="n">pixel</span>
+ <span class="o">*</span> <span class="n">depth</span> <span class="ow">and</span> <span class="n">color</span> <span class="n">space</span> <span class="n">to</span> <span class="n">the</span> <span class="n">encoder</span><span class="s1">&#39;s internal values and sets the slice</span>
+ <span class="o">*</span> <span class="nb">type</span> <span class="n">to</span> <span class="n">auto</span> <span class="o">-</span> <span class="n">so</span> <span class="n">the</span> <span class="n">lookahead</span> <span class="n">will</span> <span class="n">determine</span> <span class="nb">slice</span> <span class="nb">type</span><span class="o">.</span>
+ <span class="o">*/</span>
+<span class="n">void</span> <span class="n">x265_picture_init</span><span class="p">(</span><span class="n">x265_param</span> <span class="o">*</span><span class="n">param</span><span class="p">,</span> <span class="n">x265_picture</span> <span class="o">*</span><span class="n">pic</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>x265 does not perform any color space conversions, so the raw picture’s
+color space (chroma sampling) must match the color space specified in
+the param structure used to allocate the encoder. <strong>x265_picture_init</strong>
+initializes this field to the internal color space and it is best to
+leave it unmodified.</p>
+<p>The picture bit depth is initialized to be the encoder’s internal bit
+depth but this value should be changed to the actual depth of the pixels
+being passed into the encoder.  If the picture bit depth is more than 8,
+the encoder assumes two bytes are used to represent each sample
+(little-endian shorts).</p>
+<p>The user is responsible for setting the plane pointers and plane strides
+(in units of bytes, not pixels). The presentation time stamp (<strong>pts</strong>)
+is optional, depending on whether you need accurate decode time stamps
+(<strong>dts</strong>) on output.</p>
+<p>If you wish to override the lookahead or rate control for a given
+picture you may specify a slicetype other than X265_TYPE_AUTO, or a
+forceQP value other than 0.</p>
+<p>x265 does not modify the picture structure provided as input, so you may
+reuse a single <strong>x265_picture</strong> for all pictures passed to a single
+encoder, or even all pictures passed to multiple encoders.</p>
+<p>Structures allocated from the library should eventually be released:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_picture_free</span><span class="p">:</span>
+ <span class="o">*</span>  <span class="n">Use</span> <span class="n">x265_picture_free</span><span class="p">()</span> <span class="n">to</span> <span class="n">release</span> <span class="n">storage</span> <span class="k">for</span> <span class="n">an</span> <span class="n">x265_picture</span> <span class="n">instance</span>
+ <span class="o">*</span>  <span class="n">allocated</span> <span class="n">by</span> <span class="n">x265_picture_alloc</span><span class="p">()</span> <span class="o">*/</span>
+<span class="n">void</span> <span class="n">x265_picture_free</span><span class="p">(</span><span class="n">x265_picture</span> <span class="o">*</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="analysis-buffers">
+<h2>Analysis Buffers<a class="headerlink" href="#analysis-buffers" title="Permalink to this headline">¶</a></h2>
+<p>Analysis information can be saved and reused to between encodes of the
+same video sequence (generally for multiple bitrate encodes).  The best
+results are attained by saving the analysis information of the highest
+bitrate encode and reuse it in lower bitrate encodes.</p>
+<p>When saving or loading analysis data, buffers must be allocated for
+every picture passed into the encoder using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_alloc_analysis_data</span><span class="p">:</span>
+ <span class="o">*</span>  <span class="n">Allocate</span> <span class="n">memory</span> <span class="n">to</span> <span class="n">hold</span> <span class="n">analysis</span> <span class="n">meta</span> <span class="n">data</span><span class="p">,</span> <span class="n">returns</span> <span class="mi">1</span> <span class="n">on</span> <span class="n">success</span> <span class="k">else</span> <span class="mi">0</span> <span class="o">*/</span>
+<span class="nb">int</span> <span class="n">x265_alloc_analysis_data</span><span class="p">(</span><span class="n">x265_picture</span><span class="o">*</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Note that this is very different from the typical semantics of
+<strong>x265_picture</strong>, which can be reused many times. The analysis buffers must
+be re-allocated for every input picture.</p>
+<p>Analysis buffers passed to the encoder are owned by the encoder until
+they pass the buffers back via an output <strong>x265_picture</strong>. The user is
+responsible for releasing the buffers when they are finished with them
+via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_free_analysis_data</span><span class="p">:</span>
+ <span class="o">*</span>  <span class="n">Use</span> <span class="n">x265_free_analysis_data</span> <span class="n">to</span> <span class="n">release</span> <span class="n">storage</span> <span class="n">of</span> <span class="n">members</span> <span class="n">allocated</span> <span class="n">by</span>
+ <span class="o">*</span>  <span class="n">x265_alloc_analysis_data</span> <span class="o">*/</span>
+<span class="n">void</span> <span class="n">x265_free_analysis_data</span><span class="p">(</span><span class="n">x265_picture</span><span class="o">*</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="encode-process">
+<h2>Encode Process<a class="headerlink" href="#encode-process" title="Permalink to this headline">¶</a></h2>
+<p>The output of the encoder is a series of NAL packets, which are always
+returned concatenated in consecutive memory. HEVC streams have SPS and
+PPS and VPS headers which describe how the following packets are to be
+decoded. If you specified <a class="reference internal" href="cli.html#cmdoption-repeat-headers"><code class="xref std std-option docutils literal notranslate"><span class="pre">--repeat-headers</span></code></a> then those headers
+will be output with every keyframe.  Otherwise you must explicitly query
+those headers using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_encoder_headers</span><span class="p">:</span>
+ <span class="o">*</span>      <span class="k">return</span> <span class="n">the</span> <span class="n">SPS</span> <span class="ow">and</span> <span class="n">PPS</span> <span class="n">that</span> <span class="n">will</span> <span class="n">be</span> <span class="n">used</span> <span class="k">for</span> <span class="n">the</span> <span class="n">whole</span> <span class="n">stream</span><span class="o">.</span>
+ <span class="o">*</span>      <span class="o">*</span><span class="n">pi_nal</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">number</span> <span class="n">of</span> <span class="n">NAL</span> <span class="n">units</span> <span class="n">outputted</span> <span class="ow">in</span> <span class="n">pp_nal</span><span class="o">.</span>
+ <span class="o">*</span>      <span class="n">returns</span> <span class="n">negative</span> <span class="n">on</span> <span class="n">error</span><span class="p">,</span> <span class="n">total</span> <span class="n">byte</span> <span class="n">size</span> <span class="n">of</span> <span class="n">payload</span> <span class="n">data</span> <span class="n">on</span> <span class="n">success</span>
+ <span class="o">*</span>      <span class="n">the</span> <span class="n">payloads</span> <span class="n">of</span> <span class="nb">all</span> <span class="n">output</span> <span class="n">NALs</span> <span class="n">are</span> <span class="n">guaranteed</span> <span class="n">to</span> <span class="n">be</span> <span class="n">sequential</span> <span class="ow">in</span> <span class="n">memory</span><span class="o">.</span> <span class="o">*/</span>
+<span class="nb">int</span> <span class="n">x265_encoder_headers</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="p">,</span> <span class="n">x265_nal</span> <span class="o">**</span><span class="n">pp_nal</span><span class="p">,</span> <span class="n">uint32_t</span> <span class="o">*</span><span class="n">pi_nal</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Now we get to the main encode loop. Raw input pictures are passed to the
+encoder in display order via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_encoder_encode</span><span class="p">:</span>
+ <span class="o">*</span>      <span class="n">encode</span> <span class="n">one</span> <span class="n">picture</span><span class="o">.</span>
+ <span class="o">*</span>      <span class="o">*</span><span class="n">pi_nal</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">number</span> <span class="n">of</span> <span class="n">NAL</span> <span class="n">units</span> <span class="n">outputted</span> <span class="ow">in</span> <span class="n">pp_nal</span><span class="o">.</span>
+ <span class="o">*</span>      <span class="n">returns</span> <span class="n">negative</span> <span class="n">on</span> <span class="n">error</span><span class="p">,</span> <span class="n">zero</span> <span class="k">if</span> <span class="n">no</span> <span class="n">NAL</span> <span class="n">units</span> <span class="n">returned</span><span class="o">.</span>
+ <span class="o">*</span>      <span class="n">the</span> <span class="n">payloads</span> <span class="n">of</span> <span class="nb">all</span> <span class="n">output</span> <span class="n">NALs</span> <span class="n">are</span> <span class="n">guaranteed</span> <span class="n">to</span> <span class="n">be</span> <span class="n">sequential</span> <span class="ow">in</span> <span class="n">memory</span><span class="o">.</span> <span class="o">*/</span>
+<span class="nb">int</span> <span class="n">x265_encoder_encode</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="n">encoder</span><span class="p">,</span> <span class="n">x265_nal</span> <span class="o">**</span><span class="n">pp_nal</span><span class="p">,</span> <span class="n">uint32_t</span> <span class="o">*</span><span class="n">pi_nal</span><span class="p">,</span> <span class="n">x265_picture</span> <span class="o">*</span><span class="n">pic_in</span><span class="p">,</span> <span class="n">x265_picture</span> <span class="o">*</span><span class="n">pic_out</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>These pictures are queued up until the lookahead is full, and then the
+frame encoders in turn are filled, and then finally you begin receiving
+a output NALs (corresponding to a single output picture) with each input
+picture you pass into the encoder.</p>
+<p>Once the pipeline is completely full, <strong>x265_encoder_encode()</strong> will
+block until the next output picture is complete.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Optionally, if the pointer of a second <strong>x265_picture</strong> structure is
+provided, the encoder will fill it with data pertaining to the
+output picture corresponding to the output NALs, including the
+recontructed image, POC and decode timestamp. These pictures will be
+in encode (or decode) order. The encoder will also write corresponding
+frame encode statistics into <strong>x265_frame_stats</strong>.</p>
+</div>
+<p>When the last of the raw input pictures has been sent to the encoder,
+<strong>x265_encoder_encode()</strong> must still be called repeatedly with a
+<em>pic_in</em> argument of 0, indicating a pipeline flush, until the function
+returns a value less than or equal to 0 (indicating the output bitstream
+is complete).</p>
+<p>At any time during this process, the application may query running
+statistics from the encoder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_encoder_get_stats</span><span class="p">:</span>
+ <span class="o">*</span>       <span class="n">returns</span> <span class="n">encoder</span> <span class="n">statistics</span> <span class="o">*/</span>
+<span class="n">void</span> <span class="n">x265_encoder_get_stats</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="n">encoder</span><span class="p">,</span> <span class="n">x265_stats</span> <span class="o">*</span><span class="p">,</span> <span class="n">uint32_t</span> <span class="n">statsSizeBytes</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="cleanup">
+<h2>Cleanup<a class="headerlink" href="#cleanup" title="Permalink to this headline">¶</a></h2>
+<p>At the end of the encode, the application will want to trigger logging
+of the final encode statistics, if <a class="reference internal" href="cli.html#cmdoption-csv"><code class="xref std std-option docutils literal notranslate"><span class="pre">--csv</span></code></a> had been specified:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_encoder_log</span><span class="p">:</span>
+ <span class="o">*</span>       <span class="n">write</span> <span class="n">a</span> <span class="n">line</span> <span class="n">to</span> <span class="n">the</span> <span class="n">configured</span> <span class="n">CSV</span> <span class="n">file</span><span class="o">.</span> <span class="n">If</span> <span class="n">a</span> <span class="n">CSV</span> <span class="n">filename</span> <span class="n">was</span> <span class="ow">not</span>
+ <span class="o">*</span>       <span class="n">configured</span><span class="p">,</span> <span class="ow">or</span> <span class="n">file</span> <span class="nb">open</span> <span class="n">failed</span><span class="p">,</span> <span class="n">this</span> <span class="n">function</span> <span class="n">will</span> <span class="n">perform</span> <span class="n">no</span> <span class="n">write</span><span class="o">.</span> <span class="o">*/</span>
+<span class="n">void</span> <span class="n">x265_encoder_log</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="n">encoder</span><span class="p">,</span> <span class="nb">int</span> <span class="n">argc</span><span class="p">,</span> <span class="n">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Finally, the encoder must be closed in order to free all of its
+resources. An encoder that has been flushed cannot be restarted and
+reused. Once <strong>x265_encoder_close()</strong> has been called, the encoder
+handle must be discarded:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_encoder_close</span><span class="p">:</span>
+ <span class="o">*</span>      <span class="n">close</span> <span class="n">an</span> <span class="n">encoder</span> <span class="n">handler</span> <span class="o">*/</span>
+<span class="n">void</span> <span class="n">x265_encoder_close</span><span class="p">(</span><span class="n">x265_encoder</span> <span class="o">*</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>When the application has completed all encodes, it should call
+<strong>x265_cleanup()</strong> to free process global, particularly if a memory-leak
+detection tool is being used. <strong>x265_cleanup()</strong> also resets the saved
+CTU size so it will be possible to create a new encoder with a different
+CTU size:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_cleanup</span><span class="p">:</span>
+ <span class="o">*</span>     <span class="n">release</span> <span class="n">library</span> <span class="n">static</span> <span class="n">allocations</span><span class="p">,</span> <span class="n">reset</span> <span class="n">configured</span> <span class="n">CTU</span> <span class="n">size</span> <span class="o">*/</span>
+<span class="n">void</span> <span class="n">x265_cleanup</span><span class="p">(</span><span class="n">void</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="vmaf-video-multi-method-assessment-fusion">
+<h2>VMAF (Video Multi-Method Assessment Fusion)<a class="headerlink" href="#vmaf-video-multi-method-assessment-fusion" title="Permalink to this headline">¶</a></h2>
+<p>If you set the ENABLE_LIBVMAF cmake option to ON, then x265 will report per frame
+and aggregate VMAF score for the given input and dump the scores in csv file.
+The user also need to specify the <a class="reference internal" href="cli.html#cmdoption-recon"><code class="xref std std-option docutils literal notranslate"><span class="pre">--recon</span></code></a> in command line to get the VMAF scores.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>/* x265_calculate_vmafScore:</dt><dd><ul class="simple">
+<li><p>returns VMAF score for the input video.</p></li>
+<li><p>This api must be called only after encoding was done. <a href="#id1"><span class="problematic" id="id2">*</span></a>/</p></li>
+</ul>
+</dd>
+</dl>
+<p>double x265_calculate_vmafscore(x265_param*, x265_vmaf_data*);</p>
+<dl class="simple">
+<dt>/* x265_calculate_vmaf_framelevelscore:</dt><dd><ul class="simple">
+<li><p>returns VMAF score for each frame in a given input video. The frame level VMAF score does not include temporal scores. <a href="#id3"><span class="problematic" id="id4">*</span></a>/</p></li>
+</ul>
+</dd>
+</dl>
+<p>double x265_calculate_vmaf_framelevelscore(x265_vmaf_framedata*);</p>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When setting ENABLE_LIBVMAF cmake option to ON, it is recommended to
+also set ENABLE_SHARED to OFF to prevent build problems.
+We only need the static library from these builds.</p>
+<p>Binaries build with windows will not have VMAF support.</p>
+</div>
+</div>
+<div class="section" id="multi-library-interface">
+<h2>Multi-library Interface<a class="headerlink" href="#multi-library-interface" title="Permalink to this headline">¶</a></h2>
+<p>If your application might want to make a runtime bit-depth selection, it
+will need to use one of these bit-depth introspection interfaces which
+returns an API structure containing the public function entry points and
+constants.</p>
+<p>Instead of directly using all of the <strong>x265_</strong> methods documented above,
+you query an x265_api structure from your libx265 and then use the
+function pointers of the same name (minus the <strong>x265_</strong> prefix) within
+that structure.  For instance <strong>x265_param_default()</strong> becomes
+<strong>api-&gt;param_default()</strong>.</p>
+<div class="section" id="x265-api-get">
+<h3>x265_api_get<a class="headerlink" href="#x265-api-get" title="Permalink to this headline">¶</a></h3>
+<p>The first bit-depth instrospecton method is x265_api_get(). It designed
+for applications that might statically link with libx265, or will at
+least be tied to a particular SONAME or API version:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_api_get</span><span class="p">:</span>
+ <span class="o">*</span>   <span class="n">Retrieve</span> <span class="n">the</span> <span class="n">programming</span> <span class="n">interface</span> <span class="k">for</span> <span class="n">a</span> <span class="n">linked</span> <span class="n">x265</span> <span class="n">library</span><span class="o">.</span>
+ <span class="o">*</span>   <span class="n">May</span> <span class="k">return</span> <span class="n">NULL</span> <span class="k">if</span> <span class="n">no</span> <span class="n">library</span> <span class="ow">is</span> <span class="n">available</span> <span class="n">that</span> <span class="n">supports</span> <span class="n">the</span>
+ <span class="o">*</span>   <span class="n">requested</span> <span class="n">bit</span> <span class="n">depth</span><span class="o">.</span> <span class="n">If</span> <span class="n">bitDepth</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">,</span> <span class="n">the</span> <span class="n">function</span> <span class="ow">is</span> <span class="n">guarunteed</span>
+ <span class="o">*</span>   <span class="n">to</span> <span class="k">return</span> <span class="n">a</span> <span class="n">non</span><span class="o">-</span><span class="n">NULL</span> <span class="n">x265_api</span> <span class="n">pointer</span> <span class="kn">from</span> <span class="nn">the</span> <span class="n">system</span> <span class="n">default</span>
+ <span class="o">*</span>   <span class="n">libx265</span> <span class="o">*/</span>
+<span class="n">const</span> <span class="n">x265_api</span><span class="o">*</span> <span class="n">x265_api_get</span><span class="p">(</span><span class="nb">int</span> <span class="n">bitDepth</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Like <strong>x265_encoder_encode()</strong>, this function has the build number
+automatically appended to the function name via macros. This ties your
+application to a particular binary API version of libx265 (the one you
+compile against). If you attempt to link with a libx265 with a different
+API version number, the link will fail.</p>
+<p>Obviously this has no meaningful effect on applications which statically
+link to libx265.</p>
+</div>
+<div class="section" id="x265-api-query">
+<h3>x265_api_query<a class="headerlink" href="#x265-api-query" title="Permalink to this headline">¶</a></h3>
+<p>The second bit-depth introspection method is designed for applications
+which need more flexibility in API versioning.  If you use
+<strong>x265_api_query()</strong> and dynamically link to libx265 at runtime (using
+dlopen() on POSIX or LoadLibrary() on Windows) your application is no
+longer directly tied to the API version that it was compiled against:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">x265_api_query</span><span class="p">:</span>
+ <span class="o">*</span>   <span class="n">Retrieve</span> <span class="n">the</span> <span class="n">programming</span> <span class="n">interface</span> <span class="k">for</span> <span class="n">a</span> <span class="n">linked</span> <span class="n">x265</span> <span class="n">library</span><span class="p">,</span> <span class="n">like</span>
+ <span class="o">*</span>   <span class="n">x265_api_get</span><span class="p">(),</span> <span class="k">except</span> <span class="n">this</span> <span class="n">function</span> <span class="n">accepts</span> <span class="n">X265_BUILD</span> <span class="k">as</span> <span class="n">the</span> <span class="n">second</span>
+ <span class="o">*</span>   <span class="n">argument</span> <span class="n">rather</span> <span class="n">than</span> <span class="n">using</span> <span class="n">the</span> <span class="n">build</span> <span class="n">number</span> <span class="k">as</span> <span class="n">part</span> <span class="n">of</span> <span class="n">the</span> <span class="n">function</span> <span class="n">name</span><span class="o">.</span>
+ <span class="o">*</span>   <span class="n">Applications</span> <span class="n">which</span> <span class="n">dynamically</span> <span class="n">link</span> <span class="n">to</span> <span class="n">libx265</span> <span class="n">can</span> <span class="n">use</span> <span class="n">this</span> <span class="n">interface</span> <span class="n">to</span>
+ <span class="o">*</span>   <span class="n">query</span> <span class="n">the</span> <span class="n">library</span> <span class="n">API</span> <span class="ow">and</span> <span class="n">achieve</span> <span class="n">a</span> <span class="n">relative</span> <span class="n">amount</span> <span class="n">of</span> <span class="n">version</span> <span class="n">skew</span>
+ <span class="o">*</span>   <span class="n">flexibility</span><span class="o">.</span> <span class="n">The</span> <span class="n">function</span> <span class="n">may</span> <span class="k">return</span> <span class="n">NULL</span> <span class="k">if</span> <span class="n">the</span> <span class="n">library</span> <span class="n">determines</span> <span class="n">that</span>
+ <span class="o">*</span>   <span class="n">the</span> <span class="n">apiVersion</span> <span class="n">that</span> <span class="n">your</span> <span class="n">application</span> <span class="n">was</span> <span class="n">compiled</span> <span class="n">against</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">compatible</span>
+ <span class="o">*</span>   <span class="k">with</span> <span class="n">the</span> <span class="n">library</span> <span class="n">you</span> <span class="n">have</span> <span class="n">linked</span> <span class="k">with</span><span class="o">.</span>
+ <span class="o">*</span>
+ <span class="o">*</span>   <span class="n">api_major_version</span> <span class="n">will</span> <span class="n">be</span> <span class="n">incremented</span> <span class="nb">any</span> <span class="n">time</span> <span class="n">non</span><span class="o">-</span><span class="n">backward</span> <span class="n">compatible</span>
+ <span class="o">*</span>   <span class="n">changes</span> <span class="n">are</span> <span class="n">made</span> <span class="n">to</span> <span class="nb">any</span> <span class="n">public</span> <span class="n">structures</span> <span class="ow">or</span> <span class="n">functions</span><span class="o">.</span> <span class="n">If</span>
+ <span class="o">*</span>   <span class="n">api_major_version</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">match</span> <span class="n">X265_MAJOR_VERSION</span> <span class="kn">from</span> <span class="nn">the</span> <span class="n">x265</span><span class="o">.</span><span class="n">h</span> <span class="n">your</span>
+ <span class="o">*</span>   <span class="n">application</span> <span class="n">compiled</span> <span class="n">against</span><span class="p">,</span> <span class="n">your</span> <span class="n">application</span> <span class="n">must</span> <span class="ow">not</span> <span class="n">use</span> <span class="n">the</span> <span class="n">returned</span>
+ <span class="o">*</span>   <span class="n">x265_api</span> <span class="n">pointer</span><span class="o">.</span>
+ <span class="o">*</span>
+ <span class="o">*</span>   <span class="n">Users</span> <span class="n">of</span> <span class="n">this</span> <span class="n">API</span> <span class="o">*</span><span class="n">must</span><span class="o">*</span> <span class="n">also</span> <span class="n">validate</span> <span class="n">the</span> <span class="n">sizes</span> <span class="n">of</span> <span class="nb">any</span> <span class="n">structures</span> <span class="n">which</span>
+ <span class="o">*</span>   <span class="n">are</span> <span class="ow">not</span> <span class="n">treated</span> <span class="k">as</span> <span class="n">opaque</span> <span class="ow">in</span> <span class="n">application</span> <span class="n">code</span><span class="o">.</span> <span class="n">For</span> <span class="n">instance</span><span class="p">,</span> <span class="k">if</span> <span class="n">your</span>
+ <span class="o">*</span>   <span class="n">application</span> <span class="n">dereferences</span> <span class="n">a</span> <span class="n">x265_param</span> <span class="n">pointer</span><span class="p">,</span> <span class="n">then</span> <span class="n">it</span> <span class="n">must</span> <span class="n">check</span> <span class="n">that</span>
+ <span class="o">*</span>   <span class="n">api</span><span class="o">-&gt;</span><span class="n">sizeof_param</span> <span class="n">matches</span> <span class="n">the</span> <span class="n">sizeof</span><span class="p">(</span><span class="n">x265_param</span><span class="p">)</span> <span class="n">that</span> <span class="n">your</span> <span class="n">application</span>
+ <span class="o">*</span>   <span class="n">compiled</span> <span class="k">with</span><span class="o">.</span> <span class="o">*/</span>
+<span class="n">const</span> <span class="n">x265_api</span><span class="o">*</span> <span class="n">x265_api_query</span><span class="p">(</span><span class="nb">int</span> <span class="n">bitDepth</span><span class="p">,</span> <span class="nb">int</span> <span class="n">apiVersion</span><span class="p">,</span> <span class="nb">int</span><span class="o">*</span> <span class="n">err</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>A number of validations must be performed on the returned API structure
+in order to determine if it is safe for use by your application. If you
+do not perform these checks, your application is liable to crash:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">api</span><span class="o">-&gt;</span><span class="n">api_major_version</span> <span class="o">!=</span> <span class="n">X265_MAJOR_VERSION</span><span class="p">)</span> <span class="o">/*</span> <span class="n">do</span> <span class="ow">not</span> <span class="n">use</span> <span class="o">*/</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">api</span><span class="o">-&gt;</span><span class="n">sizeof_param</span> <span class="o">!=</span> <span class="n">sizeof</span><span class="p">(</span><span class="n">x265_param</span><span class="p">))</span>      <span class="o">/*</span> <span class="n">do</span> <span class="ow">not</span> <span class="n">use</span> <span class="o">*/</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">api</span><span class="o">-&gt;</span><span class="n">sizeof_picture</span> <span class="o">!=</span> <span class="n">sizeof</span><span class="p">(</span><span class="n">x265_picture</span><span class="p">))</span>  <span class="o">/*</span> <span class="n">do</span> <span class="ow">not</span> <span class="n">use</span> <span class="o">*/</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">api</span><span class="o">-&gt;</span><span class="n">sizeof_stats</span> <span class="o">!=</span> <span class="n">sizeof</span><span class="p">(</span><span class="n">x265_stats</span><span class="p">))</span>      <span class="o">/*</span> <span class="n">do</span> <span class="ow">not</span> <span class="n">use</span> <span class="o">*/</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">api</span><span class="o">-&gt;</span><span class="n">sizeof_zone</span> <span class="o">!=</span> <span class="n">sizeof</span><span class="p">(</span><span class="n">x265_zone</span><span class="p">))</span>        <span class="o">/*</span> <span class="n">do</span> <span class="ow">not</span> <span class="n">use</span> <span class="o">*/</span>
+<span class="n">etc</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>Note that if your application does not directly allocate or dereference
+one of these structures, if it treats the structure as opaque or does
+not use it at all, then it can skip the size check for that structure.</p>
+<p>In particular, if your application uses api-&gt;param_alloc(),
+api-&gt;param_free(), api-&gt;param_parse(), etc and never directly accesses
+any x265_param fields, then it can skip the check on the
+sizeof(x265_parm) and thereby ignore changes to that structure (which
+account for a large percentage of X265_BUILD bumps).</p>
+</div>
+<div class="section" id="build-implications">
+<h3>Build Implications<a class="headerlink" href="#build-implications" title="Permalink to this headline">¶</a></h3>
+<p>By default libx265 will place all of its internal C++ classes and
+functions within an x265 namespace and export all of the C functions
+documented in this file. Obviously this prevents 8bit and 10bit builds
+of libx265 from being statically linked into a single binary, all of
+those symbols would collide.</p>
+<p>However, if you set the EXPORT_C_API cmake option to OFF then libx265
+will use a bit-depth specific namespace and prefix for its assembly
+functions (x265_8bit, x265_10bit or x265_12bit) and export no C
+functions.</p>
+<p>In this way you can build one or more libx265 libraries without any
+exported C interface and link them into a libx265 build that does export
+a C interface. The build which exported the C functions becomes the
+<em>default</em> bit depth for the combined library, and the other bit depths
+are available via the bit-depth introspection methods.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When setting EXPORT_C_API cmake option to OFF, it is recommended to
+also set ENABLE_SHARED and ENABLE_CLI to OFF to prevent build
+problems.  We only need the static library from these builds.</p>
+</div>
+<p>If an application requests a bit-depth that is not supported by the
+default library or any of the additionally linked libraries, the
+introspection method will fall-back to an attempt to dynamically bind a
+shared library with a name appropriate for the requested bit-depth:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">8</span><span class="o">-</span><span class="n">bit</span><span class="p">:</span>  <span class="n">libx265_main</span>
+<span class="mi">10</span><span class="o">-</span><span class="n">bit</span><span class="p">:</span> <span class="n">libx265_main10</span>
+<span class="mi">12</span><span class="o">-</span><span class="n">bit</span><span class="p">:</span> <span class="n">libx265_main12</span>
+</pre></div>
+</div>
+<p>If the profile-named library is not found, it will then try to bind a
+generic libx265 in the hopes that it is a multilib library with all bit
+depths.</p>
+</div>
+<div class="section" id="packaging-and-distribution">
+<h3>Packaging and Distribution<a class="headerlink" href="#packaging-and-distribution" title="Permalink to this headline">¶</a></h3>
+<p>We recommend that packagers distribute a single combined shared/static
+library build which includes all the bit depth libraries linked
+together. See the multilib scripts in our <code class="file docutils literal notranslate"><span class="pre">build/</span></code> subdirectories
+for examples of how to affect these combined library builds. It is the
+packager’s discretion which bit-depth exports the public C functions and
+thus becomes the default bit-depth for the combined library.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Windows packagers might want to build libx265 with WINXP_SUPPORT
+enabled. This makes the resulting binaries functional on XP and
+Vista. Without this flag, the minimum supported host O/S is Windows
+7. Also note that binaries built with WINXP_SUPPORT will <em>not</em> have
+NUMA support and they will have slightly less performance.</p>
+<p>STATIC_LINK_CRT is also recommended so end-users will not need to
+install any additional MSVC C runtime libraries.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Application Programming Interface</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#build-considerations">Build Considerations</a></li>
+<li><a class="reference internal" href="#encoder">Encoder</a></li>
+<li><a class="reference internal" href="#param">Param</a></li>
+<li><a class="reference internal" href="#pictures">Pictures</a></li>
+<li><a class="reference internal" href="#analysis-buffers">Analysis Buffers</a></li>
+<li><a class="reference internal" href="#encode-process">Encode Process</a></li>
+<li><a class="reference internal" href="#cleanup">Cleanup</a></li>
+<li><a class="reference internal" href="#vmaf-video-multi-method-assessment-fusion">VMAF (Video Multi-Method Assessment Fusion)</a></li>
+<li><a class="reference internal" href="#multi-library-interface">Multi-library Interface</a><ul>
+<li><a class="reference internal" href="#x265-api-get">x265_api_get</a></li>
+<li><a class="reference internal" href="#x265-api-query">x265_api_query</a></li>
+<li><a class="reference internal" href="#build-implications">Build Implications</a></li>
+<li><a class="reference internal" href="#packaging-and-distribution">Packaging and Distribution</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cli.html"
+                        title="previous chapter">Command Line Options</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="threading.html"
+                        title="next chapter">Threading</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="threading.html" title="Threading"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="cli.html" title="Command Line Options"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014 MulticoreWare Inc.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
+    </div>
+  </body>
+</html>

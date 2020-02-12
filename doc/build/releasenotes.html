@@ -1,0 +1,728 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Release Notes &#8212; x265  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="SVT-HEVC" href="svthevc.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="svthevc.html" title="SVT-HEVC"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="release-notes">
+<h1>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="version-3-2">
+<h2>Version 3.2<a class="headerlink" href="#version-3-2" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 25th September, 2019.</p>
+<div class="section" id="new-features">
+<h3>New features<a class="headerlink" href="#new-features" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>3-level hierarchical motion estimation using <a class="reference internal" href="cli.html#cmdoption-hme"><code class="xref std std-option docutils literal notranslate"><span class="pre">--hme</span></code></a> and <a class="reference internal" href="cli.html#cmdoption-hme-search"><code class="xref std std-option docutils literal notranslate"><span class="pre">--hme-search</span></code></a>.</p></li>
+<li><p>New AQ mode (<a class="reference internal" href="cli.html#cmdoption-aq-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">--aq-mode</span></code></a> 4) with variance and edge information.</p></li>
+<li><p><code class="xref std std-option docutils literal notranslate"><span class="pre">selective-sao</span></code> to selectively enable SAO at slice level.</p></li>
+</ol>
+</div>
+<div class="section" id="enhancements-to-existing-features">
+<h3>Enhancements to existing features<a class="headerlink" href="#enhancements-to-existing-features" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>New implementation of <a class="reference internal" href="cli.html#cmdoption-refine-mv"><code class="xref std std-option docutils literal notranslate"><span class="pre">--refine-mv</span></code></a> with 3 refinement levels.</p></li>
+</ol>
+</div>
+<div class="section" id="encoder-enhancements">
+<h3>Encoder enhancements<a class="headerlink" href="#encoder-enhancements" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Improved quality in the frames following dark scenes in ABR mode.</p></li>
+</ol>
+</div>
+<div class="section" id="api-changes">
+<h3>API changes<a class="headerlink" href="#api-changes" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Additions to x265_param structure to support the newly added features <a class="reference internal" href="cli.html#cmdoption-hme"><code class="xref std std-option docutils literal notranslate"><span class="pre">--hme</span></code></a>, <a class="reference internal" href="cli.html#cmdoption-hme-search"><code class="xref std std-option docutils literal notranslate"><span class="pre">--hme-search</span></code></a> and <code class="xref std std-option docutils literal notranslate"><span class="pre">selective-sao</span></code>.</p></li>
+</ol>
+</div>
+<div class="section" id="bug-fixes">
+<h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Fixed encoder crash with <a class="reference internal" href="cli.html#cmdoption-zonefile"><code class="xref std std-option docutils literal notranslate"><span class="pre">--zonefile</span></code></a> during failures in encoder_open().</p></li>
+<li><p>Fixed JSON11 build errors with HDR10+ on MacOS high sierra.</p></li>
+<li><p>Signalling out of range scaling list data fixed.</p></li>
+<li><p>Inconsistent output fix for 2-pass rate-control with cutree ON.</p></li>
+</ol>
+</div>
+<div class="section" id="known-issues">
+<h3>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Build dependency on changeset cf37911 of SVT-HEVC.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-3-1">
+<h2>Version 3.1<a class="headerlink" href="#version-3-1" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 18th June, 2019.</p>
+<div class="section" id="id1">
+<h3>New features<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>x265 can invoke SVT-HEVC library for encoding through <a class="reference internal" href="cli.html#cmdoption-svt"><code class="xref std std-option docutils literal notranslate"><span class="pre">--svt</span></code></a>.</p></li>
+<li><p>x265 can now accept interlaced inputs directly (no need to separate fields), and sends it to the encoder with proper fps and frame-size through <a class="reference internal" href="cli.html#cmdoption-field"><code class="xref std std-option docutils literal notranslate"><span class="pre">--field</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-fades"><code class="xref std std-option docutils literal notranslate"><span class="pre">--fades</span></code></a> can detect and handle fade-in regions. This option will force I-slice and initialize RC history for the brightest frame after fade-in.</p></li>
+</ol>
+</div>
+<div class="section" id="id2">
+<h3>API changes<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>A new flag to signal MasterDisplayParams and maxCll/Fall separately</p></li>
+</ol>
+</div>
+<div class="section" id="id3">
+<h3>Encoder enhancements<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Improved the performance of inter-refine level 1 by skipping the evaluation of smaller CUs when the current block is decided as “skip” by the save mode.</p></li>
+<li><p>New AVX2 primitives to improve the performance of encodes that enable <a class="reference internal" href="cli.html#cmdoption-ssim-rd"><code class="xref std std-option docutils literal notranslate"><span class="pre">--ssim-rd</span></code></a>.</p></li>
+<li><p>Improved performance in medium preset with negligible loss in quality.</p></li>
+</ol>
+</div>
+<div class="section" id="id4">
+<h3>Bug fixes<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Bug fixes for zones.</p></li>
+<li><p>Fixed wrap-around from MV structure overflow occurred around 8K pixels or over.</p></li>
+<li><p>Fixed issues in configuring cbQpOffset and crQpOffset for 444 input</p></li>
+<li><p>Fixed cutree offset computation in 2nd pass encodes.</p></li>
+</ol>
+</div>
+<div class="section" id="id5">
+<h3>Known issues<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>AVX512 main12 asm disabling.</p></li>
+<li><p>Inconsistent output with 2-pass due to cutree offset sharing.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-3-0">
+<h2>Version 3.0<a class="headerlink" href="#version-3-0" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 23/01/2019</p>
+<div class="section" id="id6">
+<h3>New features<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>option:: ‘–dolby-vision-profile &lt;integer|float&gt;’ generates bitstreams confirming to the specified Dolby Vision profile. Currently profile 5, profile 8.1 and profile 8.2 enabled, Default 0 (disabled)</p></li>
+<li><dl class="simple">
+<dt>option:: ‘–dolby-vision-rpu’ File containing Dolby Vision RPU metadata. If given, x265’s Dolby Vision metadata parser will fill the RPU field of input pictures with the metadata</dt><dd><p>read from the file. The library will interleave access units with RPUs in the bitstream. Default NULL (disabled).</p>
+</dd>
+</dl>
+</li>
+<li><p>option:: ‘–zonefile &lt;filename&gt;’ specifies a text file which contains the boundaries of the zones where each of zones are configurable.</p></li>
+<li><p>option:: ‘–qp-adaptation-range’     Delta-QP range by QP adaptation based on a psycho-visual model. Default 1.0.</p></li>
+<li><p>option:: ‘–refine-ctu-distortion &lt;0/1&gt;’ store/normalize ctu distortion in analysis-save/load. Default 0.</p></li>
+<li><dl class="simple">
+<dt>Experimental feature option:: ‘–hevc-aq’ enables adaptive quantization</dt><dd><p>It scales the quantization step size according to the spatial activity of one coding unit relative to frame average spatial activity. This AQ method utilizes
+the minimum variance of sub-unit in each coding unit to represent the coding unit’s spatial complexity.</p>
+</dd>
+</dl>
+</li>
+</ol>
+</div>
+<div class="section" id="id7">
+<h3>Encoder enhancements<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Preset: change param defaults for veryslow and slower preset. Replace slower preset with defaults used in veryslow preset and change param defaults in veryslow preset as per experimental results.</p></li>
+<li><p>AQ: change default AQ mode to auto-variance</p></li>
+<li><p>Cutree offset reuse: restricted to analysis reuse-level 10 for analysis-save -&gt; analysis-load</p></li>
+<li><p>Tune: introduce –tune animation option which improves encode quality for animated content</p></li>
+<li><p>Reuse CU depth for B frame and allow I, P frame to follow x265 depth decision</p></li>
+</ol>
+</div>
+<div class="section" id="id8">
+<h3>Bug fixes<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>RC: fix rowStat computation in const-vbv</p></li>
+<li><p>Dynamic-refine: fix memory reset size.</p></li>
+<li><p>Fix Issue #442: linking issue on non x86 platform</p></li>
+<li><p>Encoder: Do not include CLL SEI message if empty</p></li>
+<li><p>Fix issue #441 build error in VMAF lib</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-2-9">
+<h2>Version 2.9<a class="headerlink" href="#version-2-9" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 05/10/2018</p>
+<div class="section" id="id9">
+<h3>New features<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p>Support for chunked encoding</p>
+<p><code class="xref std std-option docutils literal notranslate"><span class="pre">--chunk-start</span> <span class="pre">and</span> <span class="pre">--chunk-end</span></code>
+Frames preceding first frame of chunk in display order will be encoded, however, they will be discarded in the bitstream.
+Frames following last frame of the chunk in display order will be used in taking lookahead decisions, but, they will not be encoded.
+This feature can be enabled only in closed GOP structures. Default disabled.</p>
+</li>
+<li><p>Support for HDR10+ version 1 SEI messages.</p></li>
+</ol>
+</div>
+<div class="section" id="id10">
+<h3>Encoder enhancements<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Create API function for allocating and freeing x265_analysis_data.</p></li>
+<li><p>CEA 608/708 support: Read SEI messages from text file and encode it using userSEI message.</p></li>
+</ol>
+</div>
+<div class="section" id="id11">
+<h3>Bug fixes<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Disable noise reduction when vbv is enabled.</p></li>
+<li><p>Support minLuma and maxLuma values changed by the commandline.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-2-8">
+<h2>Version 2.8<a class="headerlink" href="#version-2-8" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 21/05/2018</p>
+<div class="section" id="id12">
+<h3>New features<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt><code class="xref std std-option docutils literal notranslate"><span class="pre">--asm</span> <span class="pre">avx512</span></code> used to enable AVX-512 in x265. Default disabled.</dt><dd><p>For 4K main10 high-quality encoding, we are seeing good gains; for other resolutions and presets, we don’t recommend using this setting for now.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><a class="reference internal" href="cli.html#cmdoption-dynamic-refine"><code class="xref std std-option docutils literal notranslate"><span class="pre">--dynamic-refine</span></code></a> dynamically switches between different inter refine levels. Default disabled.</dt><dd><p>It is recommended to use :option:<a href="#id13"><span class="problematic" id="id14">`</span></a>–refine-intra 4’ with dynamic refinement for a better trade-off between encode efficiency and performance than using static refinement.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><a class="reference internal" href="cli.html#cmdoption-single-sei"><code class="xref std std-option docutils literal notranslate"><span class="pre">--single-sei</span></code></a></dt><dd><p>Encode SEI messages in a single NAL unit instead of multiple NAL units. Default disabled.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><a class="reference internal" href="cli.html#cmdoption-max-ausize-factor"><code class="xref std std-option docutils literal notranslate"><span class="pre">--max-ausize-factor</span></code></a> controls the maximum AU size defined in HEVC specification.</dt><dd><p>It represents the percentage of maximum AU size used. Default is 1.</p>
+</dd>
+</dl>
+</li>
+<li><p>VMAF (Video Multi-Method Assessment Fusion)
+Added VMAF support for objective quality measurement of a video sequence.
+Enable cmake option ENABLE_LIBVMAF to report per frame and aggregate VMAF score. The frame level VMAF score does not include temporal scores.
+This is supported only on linux for now.</p></li>
+</ol>
+</div>
+<div class="section" id="id15">
+<h3>Encoder enhancements<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Introduced refine-intra level 4 to improve quality.</p></li>
+<li><p>Support for HLG-graded content and pic_struct in SEI message.</p></li>
+</ol>
+</div>
+<div class="section" id="id16">
+<h3>Bug Fixes<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Fix 32 bit build error (using CMAKE GUI) in Linux.</p></li>
+<li><p>Fix 32 bit build error for asm primitives.</p></li>
+<li><p>Fix build error on mac OS.</p></li>
+<li><p>Fix VBV Lookahead in analysis load to achieve target bitrate.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-2-7">
+<h2>Version 2.7<a class="headerlink" href="#version-2-7" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 21st Feb, 2018.</p>
+<div class="section" id="id17">
+<h3>New features<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="cli.html#cmdoption-gop-lookahead"><code class="xref std std-option docutils literal notranslate"><span class="pre">--gop-lookahead</span></code></a> can be used to extend the gop boundary(set by <cite>–keyint</cite>). The GOP will be extended, if a scene-cut frame is found within this many number of frames.</p></li>
+<li><p>Support for RADL pictures added in x265.
+<a class="reference internal" href="cli.html#cmdoption-radl"><code class="xref std std-option docutils literal notranslate"><span class="pre">--radl</span></code></a> can be used to decide number of RADL pictures preceding the IDR picture.</p></li>
+</ol>
+</div>
+<div class="section" id="id18">
+<h3>Encoder enhancements<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Moved from YASM to NASM assembler. Supports NASM assembler version 2.13 and greater.</p></li>
+<li><p>Enable analysis save and load in a single run. Introduces two new cli options <cite>–analysis-save &lt;filename&gt;</cite> and <cite>–analysis-load &lt;filename&gt;</cite>.</p></li>
+<li><p>Comply to HDR10+ LLC specification.</p></li>
+<li><p>Reduced x265 build time by more than 50% by re-factoring ipfilter.asm.</p></li>
+</ol>
+</div>
+<div class="section" id="id19">
+<h3>Bug fixes<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Fixed inconsistent output issue in deblock filter and –const-vbv.</p></li>
+<li><p>Fixed Mac OS build warnings.</p></li>
+<li><p>Fixed inconsistency in pass-2 when weightp and cutree are enabled.</p></li>
+<li><p>Fixed deadlock issue due to dropping of BREF frames, while forcing slice types through qp file.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-2-6">
+<h2>Version 2.6<a class="headerlink" href="#version-2-6" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 29th November, 2017.</p>
+<div class="section" id="id20">
+<h3>New features<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>x265 can now refine analysis from a previous HEVC encode (using options <a class="reference internal" href="cli.html#cmdoption-refine-inter"><code class="xref std std-option docutils literal notranslate"><span class="pre">--refine-inter</span></code></a>, and <a class="reference internal" href="cli.html#cmdoption-refine-intra"><code class="xref std std-option docutils literal notranslate"><span class="pre">--refine-intra</span></code></a>), or a previous AVC encode (using option <a class="reference internal" href="cli.html#cmdoption-refine-mv-type"><code class="xref std std-option docutils literal notranslate"><span class="pre">--refine-mv-type</span></code></a>). The previous encode’s information can be packaged using the <em>x265_analysis_data_t</em>  data field available in the <em>x265_picture</em> object.</p></li>
+<li><p>Basic support for segmented (or chunked) encoding added with <a class="reference internal" href="cli.html#cmdoption-vbv-end"><code class="xref std std-option docutils literal notranslate"><span class="pre">--vbv-end</span></code></a> that can specify the status of CPB at the end of a segment. String this together with <a class="reference internal" href="cli.html#cmdoption-vbv-init"><code class="xref std std-option docutils literal notranslate"><span class="pre">--vbv-init</span></code></a> to encode a title as chunks while maintaining VBV compliance!</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-force-flush"><code class="xref std std-option docutils literal notranslate"><span class="pre">--force-flush</span></code></a> can be used to trigger a premature flush of the encoder. This option is beneficial when input is known to be bursty, and may be at a rate slower than the encoder.</p></li>
+<li><p>Experimental feature <a class="reference internal" href="cli.html#cmdoption-lowpass-dct"><code class="xref std std-option docutils literal notranslate"><span class="pre">--lowpass-dct</span></code></a> that uses truncated DCT for transformation.</p></li>
+</ol>
+</div>
+<div class="section" id="id21">
+<h3>Encoder enhancements<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Slice-parallel mode gets a significant boost in performance, particularly in low-latency mode.</p></li>
+<li><p>x265 now officially supported on VS2017.</p></li>
+<li><p>x265 now supports all depths from mono0 to mono16 for Y4M format.</p></li>
+</ol>
+</div>
+<div class="section" id="id22">
+<h3>API changes<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Options that modified PPS dynamically (<a class="reference internal" href="cli.html#cmdoption-opt-qp-pps"><code class="xref std std-option docutils literal notranslate"><span class="pre">--opt-qp-pps</span></code></a> and <a class="reference internal" href="cli.html#cmdoption-opt-ref-list-length-pps"><code class="xref std std-option docutils literal notranslate"><span class="pre">--opt-ref-list-length-pps</span></code></a>) are now disabled by default to enable users to save bits by not sending headers. If these options are enabled, headers have to be repeated for every GOP.</p></li>
+<li><p>Rate-control and analysis parameters can dynamically be reconfigured simultaneously via the <em>x265_encoder_reconfig</em> API.</p></li>
+<li><p>New API functions to extract intermediate information such as slice-type, scenecut information, reference frames, etc. are now available. This information may be beneficial to integrating applications that are attempting to perform content-adaptive encoding. Refer to documentation on <em>x265_get_slicetype_poc_and_scenecut</em>, and <em>x265_get_ref_frame_list</em> for more details and suggested usage.</p></li>
+<li><p>A new API to pass supplemental CTU information to x265 to influence analysis decisions has been added. Refer to documentation on <em>x265_encoder_ctu_info</em> for more details.</p></li>
+</ol>
+</div>
+<div class="section" id="id23">
+<h3>Bug fixes<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Bug fixes when <a class="reference internal" href="cli.html#cmdoption-slices"><code class="xref std std-option docutils literal notranslate"><span class="pre">--slices</span></code></a> is used with VBV settings.</p></li>
+<li><p>Minor memory leak fixed for HDR10+ builds, and default x265 when pools option is specified.</p></li>
+<li><p>HDR10+ bug fix to remove dependence on poc counter to select meta-data information.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-2-5">
+<h2>Version 2.5<a class="headerlink" href="#version-2-5" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 13th July, 2017.</p>
+<div class="section" id="id24">
+<h3>Encoder enhancements<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Improved grain handling with <a class="reference internal" href="cli.html#cmdoption-tune"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tune</span></code></a> grain option by throttling VBV operations to limit QP jumps.</p></li>
+<li><p>Frame threads are now decided based on number of threads specified in the <a class="reference internal" href="cli.html#cmdoption-pools"><code class="xref std std-option docutils literal notranslate"><span class="pre">--pools</span></code></a>, as opposed to the number of hardware threads available. The mapping was also adjusted to improve quality of the encodes with minimal impact to performance.</p></li>
+<li><p>CSV logging feature (enabled by <a class="reference internal" href="cli.html#cmdoption-csv"><code class="xref std std-option docutils literal notranslate"><span class="pre">--csv</span></code></a>) is now part of the library; it was previously part of the x265 application. Applications that integrate libx265 can now extract frame level statistics for their encodes by exercising this option in the library.</p></li>
+<li><p>Globals that track min and max CU sizes, number of slices, and other parameters have now been moved into instance-specific variables. Consequently, applications that invoke multiple instances of x265 library are no longer restricted to use the same settings for these parameter options across the multiple instances.</p></li>
+<li><p>x265 can now generate a seprate library that exports the HDR10+ parsing API. Other libraries that wish to use this API may do so by linking against this library. Enable ENABLE_HDR10_PLUS in CMake options and build to generate this library.</p></li>
+<li><p>SEA motion search receives a 10% performance boost from AVX2 optimization of its kernels.</p></li>
+<li><p>The CSV log is now more elaborate with additional fields such as PU statistics, average-min-max luma and chroma values, etc. Refer to documentation of <a class="reference internal" href="cli.html#cmdoption-csv"><code class="xref std std-option docutils literal notranslate"><span class="pre">--csv</span></code></a> for details of all fields.</p></li>
+<li><p>x86inc.asm cleaned-up for improved instruction handling.</p></li>
+</ol>
+</div>
+<div class="section" id="id25">
+<h3>API changes<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>New API x265_encoder_ctu_info() introduced to specify suggested partition sizes for various CTUs in a frame. To be used in conjunction with <a class="reference internal" href="cli.html#cmdoption-ctu-info"><code class="xref std std-option docutils literal notranslate"><span class="pre">--ctu-info</span></code></a> to react to the specified partitions appropriately.</p></li>
+<li><p>Rate-control statistics passed through the x265_picture object for an incoming frame are now used by the encoder.</p></li>
+<li><p>Options to scale, reuse, and refine analysis for incoming analysis shared through the x265_analysis_data field in x265_picture for runs that use <code class="xref std std-option docutils literal notranslate"><span class="pre">--analysis-reuse-mode</span></code> load; use options <code class="xref std std-option docutils literal notranslate"><span class="pre">--scale</span></code>, <a class="reference internal" href="cli.html#cmdoption-refine-mv"><code class="xref std std-option docutils literal notranslate"><span class="pre">--refine-mv</span></code></a>, <a class="reference internal" href="cli.html#cmdoption-refine-inter"><code class="xref std std-option docutils literal notranslate"><span class="pre">--refine-inter</span></code></a>, and <a class="reference internal" href="cli.html#cmdoption-refine-intra"><code class="xref std std-option docutils literal notranslate"><span class="pre">--refine-intra</span></code></a> to explore.</p></li>
+<li><p>VBV now has a deterministic mode. Use <a class="reference internal" href="cli.html#cmdoption-const-vbv"><code class="xref std std-option docutils literal notranslate"><span class="pre">--const-vbv</span></code></a> to exercise.</p></li>
+</ol>
+</div>
+<div class="section" id="id26">
+<h3>Bug fixes<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Several fixes for HDR10+ parsing code including incompatibility with user-specific SEI, removal of warnings, linking issues in linux, etc.</p></li>
+<li><p>SEI messages for HDR10 repeated every keyint when HDR options (<a class="reference internal" href="cli.html#cmdoption-hdr-opt"><code class="xref std std-option docutils literal notranslate"><span class="pre">--hdr-opt</span></code></a>, <a class="reference internal" href="cli.html#cmdoption-master-display"><code class="xref std std-option docutils literal notranslate"><span class="pre">--master-display</span></code></a>) specified.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-2-4">
+<h2>Version 2.4<a class="headerlink" href="#version-2-4" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 22nd April, 2017.</p>
+<div class="section" id="id27">
+<h3>Encoder enhancements<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>HDR10+ supported. Dynamic metadata may be either supplied as a bitstream via the userSEI field of x265_picture, or as a json jile that can be parsed by x265 and inserted into the bitstream; use <a class="reference internal" href="cli.html#cmdoption-dhdr10-info"><code class="xref std std-option docutils literal notranslate"><span class="pre">--dhdr10-info</span></code></a> to specify json file name, and <a class="reference internal" href="cli.html#cmdoption-dhdr10-opt"><code class="xref std std-option docutils literal notranslate"><span class="pre">--dhdr10-opt</span></code></a> to enable optimization of inserting tone-map information only at IDR frames, or when the tone map information changes.</p></li>
+<li><p>Lambda tables for 8, 10, and 12-bit encoding revised, resulting in significant enhancement to subjective  visual quality.</p></li>
+<li><p>Enhanced HDR10 encoding with HDR-specific QP optimzations for chroma, and luma planes of WCG content enabled; use <a class="reference internal" href="cli.html#cmdoption-hdr-opt"><code class="xref std std-option docutils literal notranslate"><span class="pre">--hdr-opt</span></code></a> to activate.</p></li>
+<li><p>Ability to accept analysis information from other previous encodes (that may or may not be x265), and selectively reuse and refine analysis for encoding subsequent passes enabled with the <code class="xref std std-option docutils literal notranslate"><span class="pre">--refine-level</span></code> option.</p></li>
+<li><p>Slow and veryslow presets receive a 20% speed boost at iso-quality by enabling the <a class="reference internal" href="cli.html#cmdoption-limit-tu"><code class="xref std std-option docutils literal notranslate"><span class="pre">--limit-tu</span></code></a> option.</p></li>
+<li><p>The bitrate target for x265 can now be dynamically reconfigured via the reconfigure API.</p></li>
+<li><p>Performance optimized SAO algorithm introduced via the <a class="reference internal" href="cli.html#cmdoption-limit-sao"><code class="xref std std-option docutils literal notranslate"><span class="pre">--limit-sao</span></code></a> option; seeing 10% speed benefits at faster presets.</p></li>
+</ol>
+</div>
+<div class="section" id="id28">
+<h3>API changes<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>x265_reconfigure API now also accepts rate-control parameters for dynamic reconfiguration.</p></li>
+<li><p>Several additions to data fields in x265_analysis to support <code class="xref std std-option docutils literal notranslate"><span class="pre">--refine-level</span></code>: see x265.h for more details.</p></li>
+</ol>
+</div>
+<div class="section" id="id29">
+<h3>Bug fixes<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Avoid negative offsets in x265 lambda2 table with SAO enabled.</p></li>
+<li><p>Fix mingw32 build error.</p></li>
+<li><p>Seek now enabled for pipe input, in addition to file-based input</p></li>
+<li><p>Fix issue of statically linking core-utils not working in linux.</p></li>
+<li><p>Fix visual artifacts with <a class="reference internal" href="cli.html#cmdoption-multi-pass-opt-distortion"><code class="xref std std-option docutils literal notranslate"><span class="pre">--multi-pass-opt-distortion</span></code></a> with VBV.</p></li>
+<li><p>Fix bufferFill stats reported in csv.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-2-3">
+<h2>Version 2.3<a class="headerlink" href="#version-2-3" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 15th February, 2017.</p>
+<div class="section" id="id30">
+<h3>Encoder enhancements<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>New SSIM-based RD-cost computation for improved visual quality, and efficiency; use <a class="reference internal" href="cli.html#cmdoption-ssim-rd"><code class="xref std std-option docutils literal notranslate"><span class="pre">--ssim-rd</span></code></a> to exercise.</p></li>
+<li><p>Multi-pass encoding can now share analysis information from prior passes (in addition to rate-control information) to improve performance and quality of subsequent passes; to your multi-pass command-lines that use the <a class="reference internal" href="cli.html#cmdoption-pass"><code class="xref std std-option docutils literal notranslate"><span class="pre">--pass</span></code></a> option, add <a class="reference internal" href="cli.html#cmdoption-multi-pass-opt-distortion"><code class="xref std std-option docutils literal notranslate"><span class="pre">--multi-pass-opt-distortion</span></code></a> to share distortion information, and <a class="reference internal" href="cli.html#cmdoption-multi-pass-opt-analysis"><code class="xref std std-option docutils literal notranslate"><span class="pre">--multi-pass-opt-analysis</span></code></a> to share other analysis information.</p></li>
+<li><p>A dedicated thread pool for lookahead can now be specified with <a class="reference internal" href="cli.html#cmdoption-lookahead-threads"><code class="xref std std-option docutils literal notranslate"><span class="pre">--lookahead-threads</span></code></a>.</p></li>
+<li><p>option:<cite>–dynamic-rd</cite> dynamically increase analysis in areas where the bitrate is being capped by VBV; works for both CRF and ABR encodes with VBV settings.</p></li>
+<li><p>The number of bits used to signal the delta-QP can be optimized with the <a class="reference internal" href="cli.html#cmdoption-opt-cu-delta-qp"><code class="xref std std-option docutils literal notranslate"><span class="pre">--opt-cu-delta-qp</span></code></a> option; found to be useful in some scenarios for lower bitrate targets.</p></li>
+<li><p>Experimental feature option:<cite>–aq-motion</cite> adds new QP offsets based on relative motion of a block with respect to the movement of the frame.</p></li>
+</ol>
+</div>
+<div class="section" id="id31">
+<h3>API changes<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Reconfigure API now supports signalling new scaling lists.</p></li>
+<li><p>x265 application’s csv functionality now reports time (in milliseconds) taken to encode each frame.</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-strict-cbr"><code class="xref std std-option docutils literal notranslate"><span class="pre">--strict-cbr</span></code></a> enables stricter bitrate adherence by adding filler bits when achieved bitrate is lower than the target; earlier, it was only reacting when the achieved rate was higher.</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-hdr"><code class="xref std std-option docutils literal notranslate"><span class="pre">--hdr</span></code></a> can be used to ensure that max-cll and max-fall values are always signaled (even if 0,0).</p></li>
+</ol>
+</div>
+<div class="section" id="id32">
+<h3>Bug fixes<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Fixed incorrect HW thread counting on MacOS platform.</p></li>
+<li><p>Fixed scaling lists support for 4:4:4 videos.</p></li>
+<li><p>Inconsistent output fix for <code class="xref std std-option docutils literal notranslate"><span class="pre">--opt-qp-pss</span></code> by removing last slice’s QP from cost calculation.</p></li>
+<li><p>VTune profiling (enabled using ENABLE_VTUNE CMake option) now also works with 2017 VTune builds.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-2-2">
+<h2>Version 2.2<a class="headerlink" href="#version-2-2" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 26th December, 2016.</p>
+<div class="section" id="id33">
+<h3>Encoder enhancements<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Enhancements to TU selection algorithm with early-outs for improved speed; use <a class="reference internal" href="cli.html#cmdoption-limit-tu"><code class="xref std std-option docutils literal notranslate"><span class="pre">--limit-tu</span></code></a> to exercise.</p></li>
+<li><p>New motion search method SEA (Successive Elimination Algorithm) supported now as :option: <cite>–me</cite> 4</p></li>
+<li><p>Bit-stream optimizations to improve fields in PPS and SPS for bit-rate savings through <a class="reference internal" href="cli.html#cmdoption-opt-qp-pps"><code class="xref std std-option docutils literal notranslate"><span class="pre">--opt-qp-pps</span></code></a>, <a class="reference internal" href="cli.html#cmdoption-opt-ref-list-length-pps"><code class="xref std std-option docutils literal notranslate"><span class="pre">--opt-ref-list-length-pps</span></code></a>, and <a class="reference internal" href="cli.html#cmdoption-multi-pass-opt-rps"><code class="xref std std-option docutils literal notranslate"><span class="pre">--multi-pass-opt-rps</span></code></a>.</p></li>
+<li><p>Enabled using VBV constraints when encoding without WPP.</p></li>
+<li><p>All param options dumped in SEI packet in bitstream when info selected.</p></li>
+<li><p>x265 now supports POWERPC-based systems. Several key functions also have optimized ALTIVEC kernels.</p></li>
+</ol>
+</div>
+<div class="section" id="id34">
+<h3>API changes<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Options to disable SEI and optional-VUI messages from bitstream made more descriptive.</p></li>
+<li><p>New option <a class="reference internal" href="cli.html#cmdoption-scenecut-bias"><code class="xref std std-option docutils literal notranslate"><span class="pre">--scenecut-bias</span></code></a> to enable controlling bias to mark scene-cuts via cli.</p></li>
+<li><p>Support mono and mono16 color spaces for y4m input.</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-min-cu-size"><code class="xref std std-option docutils literal notranslate"><span class="pre">--min-cu-size</span></code></a> of 64 no-longer supported for reasons of visual quality (was crashing earlier anyways.)</p></li>
+<li><p>API for CSV now expects version string for better integration of x265 into other applications.</p></li>
+</ol>
+</div>
+<div class="section" id="id35">
+<h3>Bug fixes<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Several fixes to slice-based encoding.</p></li>
+<li><p><a class="reference internal" href="cli.html#cmdoption-log2-max-poc-lsb"><code class="xref std std-option docutils literal notranslate"><span class="pre">--log2-max-poc-lsb</span></code></a>’s range limited according to HEVC spec.</p></li>
+<li><p>Restrict MVs to within legal boundaries when encoding.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-2-1">
+<h2>Version 2.1<a class="headerlink" href="#version-2-1" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 27th September, 2016</p>
+<div class="section" id="id36">
+<h3>Encoder enhancements<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Support for qg-size of 8</p></li>
+<li><p>Support for inserting non-IDR I-frames at scenecuts and when running with settings for fixed-GOP (min-keyint = max-keyint)</p></li>
+<li><p>Experimental support for slice-parallelism.</p></li>
+</ol>
+</div>
+<div class="section" id="id37">
+<h3>API changes<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Encode user-define SEI messages passed in through x265_picture object.</p></li>
+<li><p>Disable SEI and VUI messages from the bitstream</p></li>
+<li><p>Specify qpmin and qpmax</p></li>
+<li><p>Control number of bits to encode POC.</p></li>
+</ol>
+</div>
+<div class="section" id="id38">
+<h3>Bug fixes<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>QP fluctuation fix for first B-frame in mini-GOP for 2-pass encoding with tune-grain.</p></li>
+<li><p>Assembly fix for crashes in 32-bit from dct_sse4.</p></li>
+<li><p>Threadpool creation fix in windows platform.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-2-0">
+<h2>Version 2.0<a class="headerlink" href="#version-2-0" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 13th July, 2016</p>
+<div class="section" id="id39">
+<h3>New Features<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>uhd-bd: Enable Ultra-HD Bluray support</p></li>
+<li><p>rskip: Enables skipping recursion to analyze lower CU sizes using heuristics at different rd-levels. Provides good visual quality gains at the highest quality presets.</p></li>
+<li><p>rc-grain: Enables a new ratecontrol mode specifically for grainy content. Strictly prevents QP oscillations within and between frames to avoid grain fluctuations.</p></li>
+<li><p>tune grain: A fully refactored and improved option to encode film grain content including QP control as well as analysis options.</p></li>
+<li><p>asm: ARM assembly is now enabled by default, native or cross compiled builds supported on armv6 and later systems.</p></li>
+</ol>
+</div>
+<div class="section" id="api-and-key-behaviour-changes">
+<h3>API and Key Behaviour Changes<a class="headerlink" href="#api-and-key-behaviour-changes" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>x265_rc_stats added to x265_picture, containing all RC decision points for that frame</p></li>
+<li><p>PTL: high tier is now allowed by default, chosen only if necessary</p></li>
+<li><p>multi-pass: First pass now uses slow-firstpass by default, enabling better RC decisions in future passes</p></li>
+<li><p>pools: fix behaviour on multi-socketed Windows systems, provide more flexibility in determining thread and pool counts</p></li>
+<li><p>ABR: improve bits allocation in the first few frames, abr reset, vbv and cutree improved</p></li>
+</ol>
+</div>
+<div class="section" id="misc">
+<h3>Misc<a class="headerlink" href="#misc" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>An SSIM calculation bug was corrected</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-1-9">
+<h2>Version 1.9<a class="headerlink" href="#version-1-9" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 29th January, 2016</p>
+<div class="section" id="id40">
+<h3>New Features<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Quant offsets: This feature allows block level quantization offsets to be specified for every frame. An API-only feature.</p></li>
+<li><p>–intra-refresh: Keyframes can be replaced by a moving column of intra blocks in non-keyframes.</p></li>
+<li><p>–limit-modes: Intelligently restricts mode analysis.</p></li>
+<li><p>–max-luma and –min-luma for luma clipping, optional for HDR use-cases</p></li>
+<li><p>Emergency denoising is now enabled by default in very low bitrate, VBV encodes</p></li>
+</ol>
+</div>
+<div class="section" id="id41">
+<h3>API Changes<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>x265_frame_stats returns many additional fields: maxCLL, maxFALL, residual energy, scenecut  and latency logging</p></li>
+<li><p>–qpfile now supports frametype ‘K”</p></li>
+<li><p>x265 now allows CRF ratecontrol in pass N (N greater than or equal to 2)</p></li>
+<li><p>Chroma subsampling format YUV 4:0:0 is now fully supported and tested</p></li>
+</ol>
+</div>
+<div class="section" id="presets-and-performance">
+<h3>Presets and Performance<a class="headerlink" href="#presets-and-performance" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Recently added features lookahead-slices, limit-modes, limit-refs have been enabled by default for applicable presets.</p></li>
+<li><p>The default psy-rd strength has been increased to 2.0</p></li>
+<li><p>Multi-socket machines now use a single pool of threads that can work cross-socket.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="version-1-8">
+<h2>Version 1.8<a class="headerlink" href="#version-1-8" title="Permalink to this headline">¶</a></h2>
+<p>Release date - 10th August, 2015</p>
+<div class="section" id="id42">
+<h3>API Changes<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Experimental support for Main12 is now enabled. Partial assembly support exists.</p></li>
+<li><p>Main12 and Intra/Still picture profiles are now supported. Still picture profile is detected based on x265_param::totalFrames.</p></li>
+</ol>
+<p>3. Three classes of encoding statistics are now available through the API.
+a) x265_stats - contains encoding statistics, available through x265_encoder_get_stats()
+b) x265_frame_stats and x265_cu_stats - contains frame encoding statistics, available through recon x265_picture
+4. –csv
+a) x265_encoder_log() is now deprecated
+b) x265_param::csvfn is also deprecated
+5. –log-level now controls only console logging, frame level console logging has been removed.
+6. Support added for new color transfer characteristic ARIB STD-B67</p>
+</div>
+<div class="section" id="id43">
+<h3>New Features<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>limit-refs: This feature limits the references analysed for individual CUS. Provides a nice tradeoff between efficiency and performance.</p></li>
+<li><p>aq-mode 3: A new aq-mode that provides additional biasing for low-light conditions.</p></li>
+<li><p>An improved scene cut detection logic that allows ratecontrol to manage visual quality at fade-ins and fade-outs better.</p></li>
+</ol>
+</div>
+<div class="section" id="preset-and-tune-options">
+<h3>Preset and Tune Options<a class="headerlink" href="#preset-and-tune-options" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>tune grain: Increases psyRdoq strength to 10.0, and rdoq-level to 2.</p></li>
+<li><p>qg-size: Default value changed to 32.</p></li>
+</ol>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Release Notes</a><ul>
+<li><a class="reference internal" href="#version-3-2">Version 3.2</a><ul>
+<li><a class="reference internal" href="#new-features">New features</a></li>
+<li><a class="reference internal" href="#enhancements-to-existing-features">Enhancements to existing features</a></li>
+<li><a class="reference internal" href="#encoder-enhancements">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#api-changes">API changes</a></li>
+<li><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
+<li><a class="reference internal" href="#known-issues">Known issues</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-3-1">Version 3.1</a><ul>
+<li><a class="reference internal" href="#id1">New features</a></li>
+<li><a class="reference internal" href="#id2">API changes</a></li>
+<li><a class="reference internal" href="#id3">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id4">Bug fixes</a></li>
+<li><a class="reference internal" href="#id5">Known issues</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-3-0">Version 3.0</a><ul>
+<li><a class="reference internal" href="#id6">New features</a></li>
+<li><a class="reference internal" href="#id7">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id8">Bug fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-2-9">Version 2.9</a><ul>
+<li><a class="reference internal" href="#id9">New features</a></li>
+<li><a class="reference internal" href="#id10">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id11">Bug fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-2-8">Version 2.8</a><ul>
+<li><a class="reference internal" href="#id12">New features</a></li>
+<li><a class="reference internal" href="#id15">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id16">Bug Fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-2-7">Version 2.7</a><ul>
+<li><a class="reference internal" href="#id17">New features</a></li>
+<li><a class="reference internal" href="#id18">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id19">Bug fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-2-6">Version 2.6</a><ul>
+<li><a class="reference internal" href="#id20">New features</a></li>
+<li><a class="reference internal" href="#id21">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id22">API changes</a></li>
+<li><a class="reference internal" href="#id23">Bug fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-2-5">Version 2.5</a><ul>
+<li><a class="reference internal" href="#id24">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id25">API changes</a></li>
+<li><a class="reference internal" href="#id26">Bug fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-2-4">Version 2.4</a><ul>
+<li><a class="reference internal" href="#id27">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id28">API changes</a></li>
+<li><a class="reference internal" href="#id29">Bug fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-2-3">Version 2.3</a><ul>
+<li><a class="reference internal" href="#id30">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id31">API changes</a></li>
+<li><a class="reference internal" href="#id32">Bug fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-2-2">Version 2.2</a><ul>
+<li><a class="reference internal" href="#id33">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id34">API changes</a></li>
+<li><a class="reference internal" href="#id35">Bug fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-2-1">Version 2.1</a><ul>
+<li><a class="reference internal" href="#id36">Encoder enhancements</a></li>
+<li><a class="reference internal" href="#id37">API changes</a></li>
+<li><a class="reference internal" href="#id38">Bug fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-2-0">Version 2.0</a><ul>
+<li><a class="reference internal" href="#id39">New Features</a></li>
+<li><a class="reference internal" href="#api-and-key-behaviour-changes">API and Key Behaviour Changes</a></li>
+<li><a class="reference internal" href="#misc">Misc</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-1-9">Version 1.9</a><ul>
+<li><a class="reference internal" href="#id40">New Features</a></li>
+<li><a class="reference internal" href="#id41">API Changes</a></li>
+<li><a class="reference internal" href="#presets-and-performance">Presets and Performance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-1-8">Version 1.8</a><ul>
+<li><a class="reference internal" href="#id42">API Changes</a></li>
+<li><a class="reference internal" href="#id43">New Features</a></li>
+<li><a class="reference internal" href="#preset-and-tune-options">Preset and Tune Options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="svthevc.html"
+                        title="previous chapter">SVT-HEVC</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/releasenotes.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="svthevc.html" title="SVT-HEVC"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014 MulticoreWare Inc.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
+    </div>
+  </body>
+</html>

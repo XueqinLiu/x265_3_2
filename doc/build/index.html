@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>x265 Documentation &#8212; x265  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction" href="introduction.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="x265-documentation">
+<h1>x265 Documentation<a class="headerlink" href="#x265-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#about-hevc">About HEVC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#about-x265">About x265</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#legal-notices">LEGAL NOTICES</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#executable-options">Executable Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#logging-statistic-options">Logging/Statistic Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#performance-options">Performance Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#input-output-file-options">Input/Output File Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#profile-level-tier">Profile, Level, Tier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#mode-decision-analysis">Mode decision / Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#temporal-motion-search-options">Temporal / motion search options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#spatial-intra-options">Spatial/intra options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#psycho-visual-options">Psycho-visual options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#slice-decision-options">Slice decision options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#quality-rate-control-and-rate-distortion-options">Quality, rate control and rate distortion options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#quantization-options">Quantization Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#loop-filters">Loop filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#vui-video-usability-information-options">VUI (Video Usability Information) options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#bitstream-options">Bitstream options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#dct-approximations">DCT Approximations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#debugging-options">Debugging options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#svt-hevc-encoder-options">SVT-HEVC Encoder Options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Application Programming Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#build-considerations">Build Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#encoder">Encoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#param">Param</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#pictures">Pictures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#analysis-buffers">Analysis Buffers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#encode-process">Encode Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#cleanup">Cleanup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#vmaf-video-multi-method-assessment-fusion">VMAF (Video Multi-Method Assessment Fusion)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#multi-library-interface">Multi-library Interface</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="threading.html">Threading</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="threading.html#thread-pools">Thread Pools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="threading.html#wavefront-parallel-processing">Wavefront Parallel Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="threading.html#bonded-task-groups">Bonded Task Groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="threading.html#frame-threading">Frame Threading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="threading.html#lookahead">Lookahead</a></li>
+<li class="toctree-l2"><a class="reference internal" href="threading.html#sao">SAO</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="presets.html">Preset Options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="presets.html#presets">Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="presets.html#tuning">Tuning</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lossless.html">Lossless</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lossless.html#lossless-encoding">Lossless Encoding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lossless.html#near-lossless-encoding">Near-lossless Encoding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lossless.html#transform-skip">Transform Skip</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svthevc.html">SVT-HEVC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svthevc.html#build-steps">Build Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svthevc.html#cli-options-mapping">CLI options Mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svthevc.html#preset-tune-options-mapping">Preset &amp; Tune Options Mapping</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="releasenotes.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-3-2">Version 3.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-3-1">Version 3.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-3-0">Version 3.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-2-9">Version 2.9</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-2-8">Version 2.8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-2-7">Version 2.7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-2-6">Version 2.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-2-5">Version 2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-2-4">Version 2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-2-3">Version 2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-2-2">Version 2.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-2-1">Version 2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-2-0">Version 2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-1-9">Version 1.9</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasenotes.html#version-1-8">Version 1.8</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Next topic</h4>
+  <p class="topless"><a href="introduction.html"
+                        title="next chapter">Introduction</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014 MulticoreWare Inc.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
+    </div>
+  </body>
+</html>

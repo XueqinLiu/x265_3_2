@@ -165,16 +165,16 @@ x265_encoder *x265_encoder_open(x265_param *p)
     }
 #endif
 
-    x265_setup_primitives(param);
+    x265_setup_primitives(param); //设置原语，因为使用模板？？
 
-    if (x265_check_params(param))
+    if (x265_check_params(param))  //检查参数是否符合要求
         goto fail;
 
-    if (!param->rc.bEnableSlowFirstPass)
+    if (!param->rc.bEnableSlowFirstPass) //未执行
         PARAM_NS::x265_param_apply_fastfirstpass(param);
 
     // may change params for auto-detect, etc
-    encoder->configure(param);
+    encoder->configure(param);  //根据相关设置配置参数
     // may change rate control and CPB params
     if (!enforceLevel(*param, encoder->m_vps))
         goto fail;
@@ -188,7 +188,7 @@ x265_encoder *x265_encoder_open(x265_param *p)
         goto fail;
     }
 
-    encoder->create();
+    encoder->create(); //开启线程
 
     memcpy(zoneParam, param, sizeof(x265_param));
     for (int i = 0; i < param->rc.zonefileCount; i++)
@@ -212,7 +212,7 @@ x265_encoder *x265_encoder_open(x265_param *p)
     if (encoder->m_aborted)
         goto fail;
 
-    x265_print_params(param);
+    x265_print_params(param); //打印参数
     return encoder;
 
 fail:
@@ -227,7 +227,7 @@ int x265_encoder_headers(x265_encoder *enc, x265_nal **pp_nal, uint32_t *pi_nal)
 {
     if (pp_nal && enc)
     {
-        Encoder *encoder = static_cast<Encoder*>(enc);
+        Encoder *encoder = static_cast<Encoder*>(enc); //static_cast把x265_encoder转换为enc
 #ifdef SVT_HEVC
         if (encoder->m_param->bEnableSvtHevc)
         {
@@ -265,7 +265,7 @@ int x265_encoder_headers(x265_encoder *enc, x265_nal **pp_nal, uint32_t *pi_nal)
                 return -1;
             }
         }
-        encoder->getStreamHeaders(encoder->m_nalList, sbacCoder, bs);
+        encoder->getStreamHeaders(encoder->m_nalList, sbacCoder, bs); //对sps,pps,vps进行编码
         *pp_nal = &encoder->m_nalList.m_nal[0];
         if (pi_nal) *pi_nal = encoder->m_nalList.m_numNal;
         return encoder->m_nalList.m_occupancy;
@@ -532,7 +532,7 @@ fail:
     // While flushing, we cannot return 0 until the entire stream is flushed
     do
     {
-        numEncoded = encoder->encode(pic_in, pic_out);
+         numEncoded = encoder->encode(pic_in, pic_out);
     }
     while ((numEncoded == 0 && !pic_in && encoder->m_numDelayedPic && !encoder->m_latestParam->forceFlush) && !encoder->m_externalFlush);
     if (numEncoded)

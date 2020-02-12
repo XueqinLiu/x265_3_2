@@ -36,6 +36,14 @@ using namespace X265_NS;
 namespace {
 // place functions in anonymous namespace (file static)
 
+/** 函数功能      ： 计算SAD（8位）
+/*\参数          lx：块的宽度
+/*\参数          ly：块的高度
+/*\参数        pix1：计算块的首地址
+/*\参数 stride_pix1：计算块的步长
+/*\参数        pix2：参考块的首地址
+/*\参数 stride_pix2：参考块的步长
+* \返回            ：返回SAD值 */
 template<int lx, int ly>
 int sad(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, intptr_t stride_pix2)
 {
@@ -53,6 +61,14 @@ int sad(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, intptr_t str
     return sum;
 }
 
+/** 函数功能      ： 计算SAD（16位）
+/*\参数          lx：块的宽度
+/*\参数          ly：块的高度
+/*\参数        pix1：计算块的首地址
+/*\参数 stride_pix1：计算块的步长
+/*\参数        pix2：参考块的首地址
+/*\参数 stride_pix2：参考块的步长
+* \返回            ：返回SAD值 */
 template<int lx, int ly>
 int sad(const int16_t* pix1, intptr_t stride_pix1, const int16_t* pix2, intptr_t stride_pix2)
 {
@@ -70,6 +86,17 @@ int sad(const int16_t* pix1, intptr_t stride_pix1, const int16_t* pix2, intptr_t
     return sum;
 }
 
+/** 函数功能      ： 同时计算3个MV对应的3个SAD值
+/*  调用范围      ： ME中
+/*\参数          lx：块的宽度
+/*\参数          ly：块的高度
+/*\参数        pix1：计算块的首地址
+/*\参数        pix2：参考块的首地址
+/*\参数        pix3：参考块的首地址
+/*\参数        pix4：参考块的首地址
+/*\参数  frefstride：参考块的步长
+/*\参数         res：存储3个MV对应的3个SAD值
+* \返回            ：null */
 template<int lx, int ly>
 void sad_x3(const pixel* pix1, const pixel* pix2, const pixel* pix3, const pixel* pix4, intptr_t frefstride, int32_t* res)
 {
@@ -92,6 +119,18 @@ void sad_x3(const pixel* pix1, const pixel* pix2, const pixel* pix3, const pixel
     }
 }
 
+/** 函数功能      ： 同时计算4个MV对应的4个SAD值
+/*  调用范围      ： ME中
+/*\参数          lx：块的宽度
+/*\参数          ly：块的高度
+/*\参数        pix1：计算块的首地址
+/*\参数        pix2：参考块的首地址
+/*\参数        pix3：参考块的首地址
+/*\参数        pix4：参考块的首地址
+/*\参数        pix5：参考块的首地址
+/*\参数  frefstride：参考块的步长
+/*\参数         res：存储4个MV对应的4个SAD值
+* \返回            ：null */
 template<int lx, int ly>
 void sad_x4(const pixel* pix1, const pixel* pix2, const pixel* pix3, const pixel* pix4, const pixel* pix5, intptr_t frefstride, int32_t* res)
 {
@@ -116,6 +155,7 @@ void sad_x4(const pixel* pix1, const pixel* pix2, const pixel* pix3, const pixel
         pix5 += frefstride;
     }
 }
+
 
 template<int lx, int ly>
 int ads_x4(int encDC[4], uint32_t *sums, int delta, uint16_t *costMvX, int16_t *mvs, int width, int thresh)
@@ -186,6 +226,7 @@ sse_t sse(const T1* pix1, intptr_t stride_pix1, const T2* pix2, intptr_t stride_
 
 #define BITS_PER_SUM (8 * sizeof(sum_t))
 
+//哈达玛4x4列变换
 #define HADAMARD4(d0, d1, d2, d3, s0, s1, s2, s3) { \
         sum2_t t0 = s0 + s1; \
         sum2_t t1 = s0 - s1; \
@@ -199,6 +240,9 @@ sse_t sse(const T1* pix1, intptr_t stride_pix1, const T2* pix2, intptr_t stride_
 
 // in: a pseudo-simd number of the form x+(y<<16)
 // return: abs(x)+(abs(y)<<16)
+/** 函数功能      ：将值转换为绝对值
+/*\参数       a   ：哈达玛4x4变换后的值（一次含两个数高16位 低16位）
+* \返回           ：返回绝对值 */
 inline sum2_t abs2(sum2_t a)
 {
     sum2_t s = ((a >> (BITS_PER_SUM - 1)) & (((sum2_t)1 << BITS_PER_SUM) + 1)) * ((sum_t)-1);
@@ -206,41 +250,108 @@ inline sum2_t abs2(sum2_t a)
     return (a + s) ^ s;
 }
 
+/** 函数功能      ：返回4x4块的SATD值/2
+/*\参数       pix1：原始块地址
+/*\参数     i_pix1：原始块步长
+/*\参数       pix2：预测块地址
+/*\参数     i_pix2：预测块步长
+* \返回           ：返回4x4块的SATD值/2 */
 static int satd_4x4(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, intptr_t stride_pix2)
 {
-    sum2_t tmp[4][2];
-    sum2_t a0, a1, a2, a3, b0, b1;
-    sum2_t sum = 0;
+	/*
+	h=
+	1  1
+	1 -1
+	H=
+	h  h
+	h -h
+	R= A  B
+	C  D
+	=
+	a(0,0) a(0,1) a(0,2) a(0,3)
+	a(1,0) a(1,1) a(1,2) a(1,3)
+	a(2,0) a(2,1) a(2,2) a(2,3)
+	a(3,0) a(3,1) a(3,2) a(3,3)
 
-    for (int i = 0; i < 4; i++, pix1 += stride_pix1, pix2 += stride_pix2)
+	H*R*H =  行变换
+	a(0,0)+a(0,1)+a(0,2)+a(0,3)      a(0,0)-a(0,1)+a(0,2)-a(0,3)      a(0,0)+a(0,1)-a(0,2)-a(0,3)      a(0,0)-a(0,1)-a(0,2)+a(0,3)
+	H* a(1,0)+a(1,1)+a(1,2)+a(1,3)      a(1,0)-a(1,1)+a(1,2)-a(1,3)      a(1,0)+a(1,1)-a(1,2)-a(1,3)      a(1,0)-a(1,1)-a(1,2)+a(1,3)
+	a(2,0)+a(2,1)+a(2,2)+a(2,3)      a(2,0)-a(2,1)+a(2,2)-a(2,3)      a(2,0)+a(2,1)-a(2,2)-a(2,3)      a(2,0)-a(2,1)-a(2,2)+a(2,3)
+	a(3,0)+a(3,1)+a(3,2)+a(3,3)      a(3,0)-a(3,1)+a(3,2)-a(3,3)      a(3,0)+a(3,1)-a(3,2)-a(3,3)      a(3,0)-a(3,1)-a(3,2)+a(3,3)
+
+	=  列变换
+	b(0,0) b(0,1) b(0,2) b(0,3)
+	H*b(1,0) b(1,1) b(1,2) b(1,3)
+	b(2,0) b(2,1) b(2,2) b(2,3)
+	b(3,0) b(3,1) b(3,2) b(3,3)
+	=
+	b(0,0)+b(1,0)+b(2,0)+b(3,0)      b(0,1)+b(1,1)+b(2,1)+b(3,1)      b(0,2)+b(1,2)+b(2,2)+b(3,2)      b(0,3)+b(1,3)+b(2,3)+b(3,3)
+	b(0,0)-b(1,0)+b(2,0)-b(3,0)      b(0,1)-b(1,1)+b(2,1)-b(3,1)      b(0,2)-b(1,2)+b(2,2)-b(3,2)      b(0,3)-b(1,3)+b(2,3)-b(3,3)
+	b(0,0)+b(1,0)-b(2,0)-b(3,0)      b(0,1)+b(1,1)-b(2,1)-b(3,1)      b(0,2)+b(1,2)-b(2,2)-b(3,2)      b(0,3)+b(1,3)-b(2,3)-b(3,3)
+	b(0,0)-b(1,0)-b(2,0)+b(3,0)      b(0,1)-b(1,1)-b(2,1)+b(3,1)      b(0,2)-b(1,2)-b(2,2)+b(3,2)      b(0,3)-b(1,3)-b(2,3)+b(3,3)
+
+	哈达玛矩阵：hadma
+	1     1     1     1
+	1    -1     1    -1
+	1     1    -1    -1
+	1    -1    -1     1
+	对其做哈达玛变换：
+	1     1     1     1
+	1    -1     1    -1
+	1     1    -1    -1
+	1    -1    -1     1
+	hadma*A*hadma' = 1     1     1     1       -1  -5  -2  -3      1     1     1     1
+	1    -1     1    -1   *   -4  -4  -1  -2  *   1    -1     1    -1
+	1     1    -1    -1       -2  -3  -5  -4      1     1    -1    -1
+	1    -1    -1     1        2  -3  -2  -3      1    -1    -1     1
+	= -42    12     2     8
+	-8    -2     4     2
+	-2     0   -14    -4
+	8    10     4     6
+	求得矩阵的绝对值和为：Σabs(x) = 128 则satd = 128/2 = 64
+	**/
+
+    sum2_t tmp[4][2];  //暂存行变换后的的值  实质存储四个 高16位和低16位分别存储
+    sum2_t a0, a1, a2, a3, b0, b1; //用于临时存储残差值
+    sum2_t sum = 0; //存储SATD值
+
+	//行变换 
+    for (int i = 0; i < 4; i++, pix1 += stride_pix1, pix2 += stride_pix2) //遍历每一行
     {
-        a0 = pix1[0] - pix2[0];
+        a0 = pix1[0] - pix2[0]; //计算残差
         a1 = pix1[1] - pix2[1];
-        b0 = (a0 + a1) + ((a0 - a1) << BITS_PER_SUM);
+        b0 = (a0 + a1) + ((a0 - a1) << BITS_PER_SUM);  //暂存两个临时值 分别用高16位和低16位存储一个值
         a2 = pix1[2] - pix2[2];
         a3 = pix1[3] - pix2[3];
         b1 = (a2 + a3) + ((a2 - a3) << BITS_PER_SUM);
-        tmp[i][0] = b0 + b1;
-        tmp[i][1] = b0 - b1;
+        tmp[i][0] = b0 + b1;  //高位存储b(i,1) 低位存储 b(i,0)
+        tmp[i][1] = b0 - b1;  //高位存储b(i,3) 低位存储 b(i,2)
     }
 
-    for (int i = 0; i < 2; i++)
+	//列变换
+    for (int i = 0; i < 2; i++)  //遍历每一列 （一次遍历两列）
     {
-        HADAMARD4(a0, a1, a2, a3, tmp[0][i], tmp[1][i], tmp[2][i], tmp[3][i]);
-        a0 = abs2(a0) + abs2(a1) + abs2(a2) + abs2(a3);
-        sum += ((sum_t)a0) + (a0 >> BITS_PER_SUM);
+        HADAMARD4(a0, a1, a2, a3, tmp[0][i], tmp[1][i], tmp[2][i], tmp[3][i]);  //作列变换
+        a0 = abs2(a0) + abs2(a1) + abs2(a2) + abs2(a3);  //当前当前列的绝对值和
+        sum += ((sum_t)a0) + (a0 >> BITS_PER_SUM);  //累加绝对值
     }
 
-    return (int)(sum >> 1);
+    return (int)(sum >> 1);  //因为所有的SATD值都是偶数  在此除以2并不影响精度
 }
 
 // x264's SWAR version of satd 8x4, performs two 4x4 SATDs at once
+/** 函数功能      ：返回8x4块的SATD值/2 (跟拆分成4x4计算相同)
+/*\参数       pix1：原始块地址
+/*\参数     i_pix1：原始块步长
+/*\参数       pix2：预测块地址
+/*\参数     i_pix2：预测块步长
+* \返回           ：返回8x4块的SATD值/2 */
 static int satd_8x4(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, intptr_t stride_pix2)
 {
     sum2_t tmp[4][4];
     sum2_t a0, a1, a2, a3;
     sum2_t sum = 0;
-
+	//行变换
     for (int i = 0; i < 4; i++, pix1 += stride_pix1, pix2 += stride_pix2)
     {
         a0 = (pix1[0] - pix2[0]) + ((sum2_t)(pix1[4] - pix2[4]) << BITS_PER_SUM);
@@ -249,7 +360,7 @@ static int satd_8x4(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, 
         a3 = (pix1[3] - pix2[3]) + ((sum2_t)(pix1[7] - pix2[7]) << BITS_PER_SUM);
         HADAMARD4(tmp[i][0], tmp[i][1], tmp[i][2], tmp[i][3], a0, a1, a2, a3);
     }
-
+	//列变换
     for (int i = 0; i < 4; i++)
     {
         HADAMARD4(a0, a1, a2, a3, tmp[0][i], tmp[1][i], tmp[2][i], tmp[3][i]);
@@ -261,6 +372,14 @@ static int satd_8x4(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, 
 
 template<int w, int h>
 // calculate satd in blocks of 4x4
+/** 函数功能      ： 将当前块拆分成4x4块并返回SATD值/2
+/*\参数          w：块的宽度
+/*\参数          h：块的高度
+/*\参数       pix1：原始块地址
+/*\参数     i_pix1：原始块步长
+/*\参数       pix2：预测块地址
+/*\参数     i_pix2：预测块步长
+* \返回           ：返回SATD值/2 */
 int satd4(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, intptr_t stride_pix2)
 {
     int satd = 0;
@@ -275,6 +394,14 @@ int satd4(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, intptr_t s
 
 template<int w, int h>
 // calculate satd in blocks of 8x4
+/** 函数功能      ： 将当前块拆分成8x4块并返回SATD值/2
+/*\参数          w：块的宽度
+/*\参数          h：块的高度
+/*\参数       pix1：原始块地址
+/*\参数     i_pix1：原始块步长
+/*\参数       pix2：预测块地址
+/*\参数     i_pix2：预测块步长
+* \返回           ：返回SATD值/2 */
 int satd8(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, intptr_t stride_pix2)
 {
     int satd = 0;
@@ -287,6 +414,12 @@ int satd8(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, intptr_t s
     return satd;
 }
 
+/** 函数功能      ：返回8x8的SATD值
+/*\参数       pix1：原始块地址
+/*\参数     i_pix1：原始块步长
+/*\参数       pix2：预测块地址
+/*\参数     i_pix2：预测块步长
+* \返回           ：返回8x8的SATD值 */
 inline int _sa8d_8x8(const pixel* pix1, intptr_t i_pix1, const pixel* pix2, intptr_t i_pix2)
 {
     sum2_t tmp[8][4];
@@ -324,6 +457,12 @@ inline int _sa8d_8x8(const pixel* pix1, intptr_t i_pix1, const pixel* pix2, intp
     return (int)sum;
 }
 
+/** 函数功能      ：返回8x8的SATD值除以4
+/*\参数       pix1：原始块地址
+/*\参数     i_pix1：原始块步长
+/*\参数       pix2：预测块地址
+/*\参数     i_pix2：预测块步长
+* \返回           ：返回8x8的SATD值除以4 */
 inline int sa8d_8x8(const pixel* pix1, intptr_t i_pix1, const pixel* pix2, intptr_t i_pix2)
 {
     return (int)((_sa8d_8x8(pix1, i_pix1, pix2, i_pix2) + 2) >> 2);

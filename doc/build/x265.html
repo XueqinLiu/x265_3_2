@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>x265 CLI Documentation &#8212; x265  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="x265-cli-documentation">
+<h1>x265 CLI Documentation<a class="headerlink" href="#x265-cli-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="synopsis">
+<h2>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<p><strong>x265</strong> [options] infile [-o] outfile</p>
+<p>Bit depth: 8</p>
+<p><strong>x265-10bit</strong> [options] infile [-o] outfile</p>
+<p>Bit depth: 10</p>
+<p>infile can be YUV or Y4M</p>
+<p>outfile is raw HEVC bitstream</p>
+</div>
+<div class="section" id="description">
+<h2>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#about-hevc">About HEVC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#about-x265">About x265</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#legal-notices">LEGAL NOTICES</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="options">
+<h2>OPTIONS<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#executable-options">Executable Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#logging-statistic-options">Logging/Statistic Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#performance-options">Performance Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#input-output-file-options">Input/Output File Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#profile-level-tier">Profile, Level, Tier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#mode-decision-analysis">Mode decision / Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#temporal-motion-search-options">Temporal / motion search options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#spatial-intra-options">Spatial/intra options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#psycho-visual-options">Psycho-visual options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#slice-decision-options">Slice decision options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#quality-rate-control-and-rate-distortion-options">Quality, rate control and rate distortion options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#quantization-options">Quantization Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#loop-filters">Loop filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#vui-video-usability-information-options">VUI (Video Usability Information) options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#bitstream-options">Bitstream options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#dct-approximations">DCT Approximations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#debugging-options">Debugging options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#svt-hevc-encoder-options">SVT-HEVC Encoder Options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="presets.html">Preset Options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="presets.html#presets">Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="presets.html#tuning">Tuning</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lossless.html">Lossless</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lossless.html#lossless-encoding">Lossless Encoding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lossless.html#near-lossless-encoding">Near-lossless Encoding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lossless.html#transform-skip">Transform Skip</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="see-also">
+<h2>SEE ALSO<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h2>
+<p><strong>libx265</strong>(3)</p>
+<p>Online documentation: <a class="reference external" href="http://x265.readthedocs.org/en/default/cli.html">http://x265.readthedocs.org/en/default/cli.html</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">x265 CLI Documentation</a><ul>
+<li><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
+<li><a class="reference internal" href="#description">DESCRIPTION</a></li>
+<li><a class="reference internal" href="#options">OPTIONS</a></li>
+<li><a class="reference internal" href="#see-also">SEE ALSO</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/x265.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014 MulticoreWare Inc.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
+    </div>
+  </body>
+</html>

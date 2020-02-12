@@ -249,7 +249,7 @@ void x265_setup_primitives(x265_param *param)
 {
     if (!primitives.pu[0].sad)
     {
-        setupCPrimitives(primitives);
+        setupCPrimitives(primitives); //…Ë÷√‘≠”Ô
 
         /* We do not want the encoder to use the un-optimized intra all-angles
          * C references. It is better to call the individual angle functions

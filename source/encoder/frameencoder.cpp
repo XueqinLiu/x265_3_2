@@ -197,6 +197,11 @@ bool FrameEncoder::init(Encoder *top, int numRows, int numCols)
 }
 
 /* Generate a complete list of unique geom sets for the current picture dimensions */
+/* Generate a complete list of unique geom sets for the current picture dimensions */
+/** 函数功能       ： 计算CU所有情况的几何信息
+/*  调用范围       ： 只在FrameEncoder::startCompressFrame函数中被调用
+*   返回值         ： 成功返回ture 失败返回 false
+**/
 bool FrameEncoder::initializeGeoms()
 {
     /* Geoms only vary between CTUs in the presence of picture edges */
@@ -259,55 +264,62 @@ bool FrameEncoder::initializeGeoms()
     return true;
 }
 
+/*Encoder::encode中调用
+**触发compressframe()进行编码*/
 bool FrameEncoder::startCompressFrame(Frame* curFrame)
 {
-    m_slicetypeWaitTime = x265_mdate() - m_prevOutputTime;
-    m_frame = curFrame;
-    m_sliceType = curFrame->m_lowres.sliceType;
-    curFrame->m_encData->m_frameEncoderID = m_jpId;
-    curFrame->m_encData->m_jobProvider = this;
-    curFrame->m_encData->m_slice->m_mref = m_mref;
+    m_slicetypeWaitTime = x265_mdate() - m_prevOutputTime;  //计算从上一帧编码完毕到开始编码新一帧的等待时间
+    m_frame = curFrame; //设置当前处理的帧
+    m_sliceType = curFrame->m_lowres.sliceType; //获取当前的帧类型
+    curFrame->m_encData->m_frameEncoderID = m_jpId; //获取当前的job id
+    curFrame->m_encData->m_jobProvider = this; //让当前帧获取当前所在线程的位置
+    curFrame->m_encData->m_slice->m_mref = m_mref; //获取参考帧信息
 
-    if (!m_cuGeoms)
+    if (!m_cuGeoms) //编码器只执行framethread个数，申请所有情况CU的几何信息
     {
-        if (!initializeGeoms())
+        if (!initializeGeoms()) //计算CU所有情况的几何信息
             return false;
     }
 
-    m_enable.trigger();
+    m_enable.trigger();  //threadMain()中的m_enable.wait();等待这个信号
     return true;
 }
 
+/** 函数功能       ： 触发compressframe()进行编码
+/*  调用范围       ： 线程循环触发，encoder->create() frame start开始 (frameThread配置多少，起几个线程)
+*   返回值         ： null
+*/
 void FrameEncoder::threadMain()
 {
     THREAD_NAME("Frame", m_jpId);
+	//本函数会被执行配置的framethread次数，因为起了framethread个线程进行compressframe
 
     if (m_pool)
     {
-        m_pool->setCurrentThreadAffinity();
+        m_pool->setCurrentThreadAffinity(); //设置线程间能够在不同的核运行，而不会同时占用同一个核
 
         /* the first FE on each NUMA node is responsible for allocating thread
          * local data for all worker threads in that pool. If WPP is disabled, then
          * each FE also needs a TLD instance */
-        if (!m_jpId)
+        if (!m_jpId) //只在m_jpid = 0 时才会进入，也就说在framethread个线程中只有第一个才会进入 (因为这次初始化为把所有并行的analysis都初始化)
         {
-            int numTLD = m_pool->m_numWorkers;
-            if (!m_param->bEnableWavefront)
+            int numTLD = m_pool->m_numWorkers; //获取当前机器核数  单机4核测试是4
+            if (!m_param->bEnableWavefront) //如果关闭WPP，默认开启
                 numTLD += m_pool->m_numProviders;
 
-            m_tld = new ThreadLocalData[numTLD];
+            m_tld = new ThreadLocalData[numTLD]; //申请并行空间
             for (int i = 0; i < numTLD; i++)
             {
-                m_tld[i].analysis.initSearch(*m_param, m_top->m_scalingList);
+                m_tld[i].analysis.initSearch(*m_param, m_top->m_scalingList); //初始化搜索算法
                 m_tld[i].analysis.create(m_tld);
             }
-
-            for (int i = 0; i < m_pool->m_numProviders; i++)
+			//将所有的Encoder的m_tld都指向第一个m_tld
+            for (int i = 0; i < m_pool->m_numProviders; i++) //遍历所有线程任务
             {
-                if (m_pool->m_jpTable[i]->m_isFrameEncoder) /* ugh; over-allocation and other issues here */
+                if (m_pool->m_jpTable[i]->m_isFrameEncoder)  //如果当前 是frameEcnoder 不是lookachead/* ugh; over-allocation and other issues here */
                 {
-                    FrameEncoder *peer = dynamic_cast<FrameEncoder*>(m_pool->m_jpTable[i]);
-                    peer->m_tld = m_tld;
+                    FrameEncoder *peer = dynamic_cast<FrameEncoder*>(m_pool->m_jpTable[i]);//强制转换类型
+                    peer->m_tld = m_tld; //公用同一ThreadLocalData buffer
                 }
             }
         }
@@ -325,10 +337,13 @@ void FrameEncoder::threadMain()
         m_localTldIdx = 0;
     }
 
-    m_done.trigger();     /* signal that thread is initialized */
-    m_enable.wait();      /* Encoder::encode() triggers this event */
+    m_done.trigger();     /* signal that thread is initialized */ //将指定的事件对象设置为信号状态
+    m_enable.wait();      //等待帧编码准备 /* Encoder::encode() triggers this event */ //等待直到指定的对象处于发信号状态或超时
 
-    while (m_threadActive)
+	//m_done在encoder.create中先进行wait 每完成一帧即compressFrame()之后才会触发
+	//以上两个是一个PV原语，m_enable表示准备开始编码，在startCompressFrame函数中触发在compressFrame之后wait
+	//m_done表示编码完成，在getEncodedPicture之前wait，在compressFrame之后触发
+    while (m_threadActive) //循环执行任务，直到encoder->stop 中设置结束
     {
         if (m_param->bCTUInfo)
         {
@@ -341,8 +356,8 @@ void FrameEncoder::threadMain()
                 m_frame->m_copyMVType.wait();
         }
         compressFrame();
-        m_done.trigger(); /* FrameEncoder::getEncodedPicture() blocks for this event */
-        m_enable.wait();
+        m_done.trigger(); //编码完毕触发完成 //* FrameEncoder::getEncodedPicture() blocks for this event */
+        m_enable.wait();//等待下一帧是否准备
     }
 }
 
@@ -424,11 +439,12 @@ void FrameEncoder::writeTrailingSEIMessages()
     m_seiReconPictureDigest.writeSEImessages(m_bs, *slice->m_sps, NAL_UNIT_SUFFIX_SEI, m_nalList, false);
 }
 
+/*只在FrameEncoder::threadMain()函数中被调用*/
 void FrameEncoder::compressFrame()
 {
     ProfileScopeEvent(frameThread);
 
-    m_startCompressTime = x265_mdate();
+    m_startCompressTime = x265_mdate();  //获取开始编码的时间点
     m_totalActiveWorkerCount = 0;
     m_activeWorkerCountSamples = 0;
     m_totalWorkerElapsedTime = 0;
@@ -451,7 +467,7 @@ void FrameEncoder::compressFrame()
     /* Emit access unit delimiter unless this is the first frame and the user is
      * not repeating headers (since AUD is supposed to be the first NAL in the access
      * unit) */
-    Slice* slice = m_frame->m_encData->m_slice;
+    Slice* slice = m_frame->m_encData->m_slice; //获取当前slice
 
     if (m_param->bEnableAccessUnitDelimiters && (m_frame->m_poc || m_param->bRepeatHeaders))
     {
@@ -488,11 +504,11 @@ void FrameEncoder::compressFrame()
         m_frame->m_encData->m_slice->m_rpsIdx = (m_top->m_rateControl->m_rce2Pass + m_frame->m_encodeOrder)->rpsIdx;
 
     // Weighted Prediction parameters estimation.
-    bool bUseWeightP = slice->m_sliceType == P_SLICE && slice->m_pps->bUseWeightPred;
-    bool bUseWeightB = slice->m_sliceType == B_SLICE && slice->m_pps->bUseWeightedBiPred;
+    bool bUseWeightP = slice->m_sliceType == P_SLICE && slice->m_pps->bUseWeightPred; //当前是否应用P帧加权预测
+    bool bUseWeightB = slice->m_sliceType == B_SLICE && slice->m_pps->bUseWeightedBiPred; //当前是否应用B帧加权预测
 
     WeightParam* reuseWP = NULL;
-    if (m_param->analysisLoad && (bUseWeightP || bUseWeightB))
+    if (m_param->analysisLoad && (bUseWeightP || bUseWeightB)) //不执行
         reuseWP = (WeightParam*)m_frame->m_analysisData.wt;
 
     if (bUseWeightP || bUseWeightB)
@@ -515,30 +531,31 @@ void FrameEncoder::compressFrame()
         }
         else
         {
-            WeightAnalysis wa(*this);
+            WeightAnalysis wa(*this); //用于多线程 加权分析
             if (m_pool && wa.tryBondPeers(*this, 1))
+				//从当前job中拥有核并且sleep状态的核可以触发多线程，如果没有可用核则在当前线程中完成进入else
                 /* use an idle worker for weight analysis */
-                wa.waitForExit();
+                wa.waitForExit(); //一直等待到任务全部完成，这里等待的是核释放，内核释放了任务也就完成了
             else
-                weightAnalyse(*slice, *m_frame, *m_param);
+                weightAnalyse(*slice, *m_frame, *m_param); //分析加权信息(每个list的第一帧分析加权与否，其它不加权)
         }
     }
     else
-        slice->disableWeights();
+        slice->disableWeights(); //关闭当前帧的加权预测
 
     if (m_param->analysisSave && (bUseWeightP || bUseWeightB))
         reuseWP = (WeightParam*)m_frame->m_analysisData.wt;
     // Generate motion references
-    int numPredDir = slice->isInterP() ? 1 : slice->isInterB() ? 2 : 0;
-    for (int l = 0; l < numPredDir; l++)
+    int numPredDir = slice->isInterP() ? 1 : slice->isInterB() ? 2 : 0;  //获取当前有几个list。P1  B2
+    for (int l = 0; l < numPredDir; l++) //遍历list
     {
         for (int ref = 0; ref < slice->m_numRefIdx[l]; ref++)
         {
             WeightParam *w = NULL;
-            if ((bUseWeightP || bUseWeightB) && slice->m_weightPredTable[l][ref][0].wtPresent)
-                w = slice->m_weightPredTable[l][ref];
+            if ((bUseWeightP || bUseWeightB) && slice->m_weightPredTable[l][ref][0].wtPresent) //如果当前应用加权预测  [list][refIdx][0:Y, 1:U, 2:V]
+                w = slice->m_weightPredTable[l][ref];//获取加权参数
             slice->m_refReconPicList[l][ref] = slice->m_refFrameList[l][ref]->m_reconPic;
-            m_mref[l][ref].init(slice->m_refReconPicList[l][ref], w, *m_param);
+            m_mref[l][ref].init(slice->m_refReconPicList[l][ref], w, *m_param);  //获取参考帧信息，申请加权帧内存
         }
         if (m_param->analysisSave && (bUseWeightP || bUseWeightB))
         {
@@ -551,12 +568,13 @@ void FrameEncoder::compressFrame()
     int numTLD;
     if (m_pool)
         numTLD = m_param->bEnableWavefront ? m_pool->m_numWorkers : m_pool->m_numWorkers + m_pool->m_numProviders;
+		//4
     else
         numTLD = 1;
 
     /* Get the QP for this frame from rate control. This call may block until
      * frames ahead of it in encode order have called rateControlEnd() */
-    int qp = m_top->m_rateControl->rateControlStart(m_frame, &m_rce, m_top);
+    int qp = m_top->m_rateControl->rateControlStart(m_frame, &m_rce, m_top);  //获取QP
     m_rce.newQp = qp;
 
     if (m_nr)
@@ -619,7 +637,7 @@ void FrameEncoder::compressFrame()
 
     /* reset entropy coders and compute slice id */
     m_entropyCoder.load(m_initSliceContext);
-    for (uint32_t sliceId = 0; sliceId < m_param->maxSlices; sliceId++)   
+    for (uint32_t sliceId = 0; sliceId < m_param->maxSlices; sliceId++)  //最大slice数量都是1 
         for (uint32_t row = m_sliceBaseRow[sliceId]; row < m_sliceBaseRow[sliceId + 1]; row++)
             m_rows[row].init(m_initSliceContext, sliceId);   
 
@@ -628,7 +646,7 @@ void FrameEncoder::compressFrame()
 
     uint32_t numSubstreams = m_param->bEnableWavefront ? slice->m_sps->numCuInHeight : m_param->maxSlices;
     X265_CHECK(m_param->bEnableWavefront || (m_param->maxSlices == 1), "Multiple slices without WPP unsupport now!");
-    if (!m_outStreams)
+    if (!m_outStreams)  
     {
         m_outStreams = new Bitstream[numSubstreams];
         if (!m_param->bEnableWavefront)
@@ -742,7 +760,7 @@ void FrameEncoder::compressFrame()
     }
 
     /* Write user SEI */
-    for (int i = 0; i < m_frame->m_userSEI.numPayloads; i++)
+    for (int i = 0; i < m_frame->m_userSEI.numPayloads; i++)  //m_userSEI.numPayloads = 0;
     {
         x265_sei_payload *payload = &m_frame->m_userSEI.payloads[i];
         if (payload->payloadType == USER_DATA_UNREGISTERED)
@@ -990,7 +1008,7 @@ void FrameEncoder::compressFrame()
 
     // finish encode of each CTU row, only required when SAO is enabled
     if (slice->m_bUseSao)
-        encodeSlice(0);
+        encodeSlice(0);  //编码slice
 
     m_entropyCoder.setBitstream(&m_bs);
 
@@ -2137,6 +2155,8 @@ void FrameEncoder::vmafFrameLevelScore()
 }
 #endif
 
+/*Encoder::encode中调用
+/*等待编码完成获取已编码的帧*/
 Frame *FrameEncoder::getEncodedPicture(NALList& output)
 {
     if (m_frame)
@@ -2144,11 +2164,11 @@ Frame *FrameEncoder::getEncodedPicture(NALList& output)
         /* block here until worker thread completes */
         m_done.wait();
 
-        Frame *ret = m_frame;
-        m_frame = NULL;
+        Frame *ret = m_frame; //是ret指向m_frame所指向的地址
+        m_frame = NULL;   //指针m_frame指向空地址
         output.takeContents(m_nalList);
         m_prevOutputTime = x265_mdate();
-        return ret;
+        return ret;  //返回指针ret，也就是指向已编码帧的地址
     }
 
     return NULL;

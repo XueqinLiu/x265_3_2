@@ -33,7 +33,7 @@ class Frame;
 class FrameData;
 class Slice;
 
-class DPB
+class DPB  //decoder picture buffer
 {
 public:
 

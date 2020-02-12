@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Threading &#8212; x265  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Preset Options" href="presets.html" />
+    <link rel="prev" title="Application Programming Interface" href="api.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="presets.html" title="Preset Options"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="Application Programming Interface"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="threading">
+<h1>Threading<a class="headerlink" href="#threading" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="thread-pools">
+<span id="pools"></span><h2>Thread Pools<a class="headerlink" href="#thread-pools" title="Permalink to this headline">¶</a></h2>
+<p>x265 creates one or more thread pools per encoder, one pool per NUMA
+node (typically a CPU socket). <a class="reference internal" href="cli.html#cmdoption-pools"><code class="xref std std-option docutils literal notranslate"><span class="pre">--pools</span></code></a> specifies the number of
+pools and the number of threads per pool the encoder will allocate. By
+default x265 allocates one thread per (hyperthreaded) CPU core on each
+NUMA node.</p>
+<p>If you are running multiple encoders on a system with multiple NUMA
+nodes, it is recommended to isolate each of them to a single node in
+order to avoid the NUMA overhead of remote memory access.</p>
+<p>Work distribution is job based. Idle worker threads scan the job
+providers assigned to their thread pool for jobs to perform. When no
+jobs are available, the idle worker threads block and consume no CPU
+cycles.</p>
+<p>Objects which desire to distribute work to worker threads are known as
+job providers (and they derive from the JobProvider class).  The thread
+pool has a method to <strong>poke</strong> awake a blocked idle thread, and job
+providers are recommended to call this method when they make new jobs
+available.</p>
+<p>Worker jobs are not allowed to block except when absolutely necessary
+for data locking. If a job becomes blocked, the work function is
+expected to drop that job so the worker thread may go back to the pool
+and find more work.</p>
+<p>On Windows, the native APIs offer sufficient functionality to discover
+the NUMA topology and enforce the thread affinity that libx265 needs (so
+long as you have not chosen to target XP or Vista), but on POSIX systems
+it relies on libnuma for this functionality. If your target POSIX system
+is single socket, then building without libnuma is a perfectly
+reasonable option, as it will have no effect on the runtime behavior. On
+a multiple-socket system, a POSIX build of libx265 without libnuma will
+be less work efficient, but will still function correctly. You lose the
+work isolation effect that keeps each frame encoder from only using the
+threads of a single socket and so you incur a heavier context switching
+cost.</p>
+</div>
+<div class="section" id="wavefront-parallel-processing">
+<h2>Wavefront Parallel Processing<a class="headerlink" href="#wavefront-parallel-processing" title="Permalink to this headline">¶</a></h2>
+<p>New with HEVC, Wavefront Parallel Processing allows each row of CTUs to
+be encoded in parallel, so long as each row stays at least two CTUs
+behind the row above it, to ensure the intra references and other data
+of the blocks above and above-right are available. WPP has almost no
+effect on the analysis and compression of each CTU and so it has a very
+small impact on compression efficiency relative to slices or tiles. The
+compression loss from WPP has been found to be less than 1% in most of
+our tests.</p>
+<p>WPP has three effects which can impact efficiency. The first is the row
+starts must be signaled in the slice header, the second is each row must
+be padded to an even byte in length, and the third is the state of the
+entropy coder is transferred from the second CTU of each row to the
+first CTU of the row below it.  In some conditions this transfer of
+state actually improves compression since the above-right state may have
+better locality than the end of the previous row.</p>
+<p>Parabola Research have published an excellent HEVC
+<a class="reference external" href="http://www.parabolaresearch.com/blog/2013-12-01-hevc-wavefront-animation.html">animation</a>
+which visualizes WPP very well.  It even correctly visualizes some of
+WPPs key drawbacks, such as:</p>
+<ol class="arabic simple">
+<li><p>the low thread utilization at the start and end of each frame</p></li>
+<li><p>a difficult block may stall the wave-front and it takes a while for
+the wave-front to recover.</p></li>
+<li><p>64x64 CTUs are big! there are much fewer rows than with H.264 and
+similar codecs</p></li>
+</ol>
+<p>Because of these stall issues you rarely get the full parallelisation
+benefit one would expect from row threading. 30% to 50% of the
+theoretical perfect threading is typical.</p>
+<p>In x265 WPP is enabled by default since it not only improves performance
+at encode but it also makes it possible for the decoder to be threaded.</p>
+<p>If WPP is disabled by <a class="reference internal" href="cli.html#cmdoption-wpp"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-wpp</span></code></a> the frame will be encoded in
+scan order and the entropy overheads will be avoided.  If frame
+threading is not disabled, the encoder will change the default frame
+thread count to be higher than if WPP was enabled.  The exact formulas
+are described in the next section.</p>
+</div>
+<div class="section" id="bonded-task-groups">
+<h2>Bonded Task Groups<a class="headerlink" href="#bonded-task-groups" title="Permalink to this headline">¶</a></h2>
+<p>If a worker thread job has work which can be performed in parallel by
+many threads, it may allocate a bonded task group and enlist the help of
+other idle worker threads from the same thread pool. Those threads will
+cooperate to complete the work of the bonded task group and then return
+to their idle states. The larger and more uniform those tasks are, the
+better the bonded task group will perform.</p>
+<div class="section" id="parallel-mode-analysis">
+<h3>Parallel Mode Analysis<a class="headerlink" href="#parallel-mode-analysis" title="Permalink to this headline">¶</a></h3>
+<p>When <a class="reference internal" href="cli.html#cmdoption-pmode"><code class="xref std std-option docutils literal notranslate"><span class="pre">--pmode</span></code></a> is enabled, each CU (at all depths from 64x64 to
+8x8) will distribute its analysis work to the thread pool via a bonded
+task group. Each analysis job will measure the cost of one prediction
+for the CU: merge, skip, intra, inter (2Nx2N, Nx2N, 2NxN, and AMP).</p>
+<p>At slower presets, the amount of increased parallelism from pmode is
+often enough to be able to reduce or disable frame parallelism while
+achieving the same overall CPU utilization. Reducing frame threads is
+often beneficial to ABR and VBV rate control.</p>
+</div>
+<div class="section" id="parallel-motion-estimation">
+<h3>Parallel Motion Estimation<a class="headerlink" href="#parallel-motion-estimation" title="Permalink to this headline">¶</a></h3>
+<p>When <a class="reference internal" href="cli.html#cmdoption-pme"><code class="xref std std-option docutils literal notranslate"><span class="pre">--pme</span></code></a> is enabled all of the analysis functions which
+perform motion searches to reference frames will distribute those motion
+searches to other worker threads via a bonded task group (if more than
+two motion searches are required).</p>
+</div>
+</div>
+<div class="section" id="frame-threading">
+<h2>Frame Threading<a class="headerlink" href="#frame-threading" title="Permalink to this headline">¶</a></h2>
+<p>Frame threading is the act of encoding multiple frames at the same time.
+It is a challenge because each frame will generally use one or more of
+the previously encoded frames as motion references and those frames may
+still be in the process of being encoded themselves.</p>
+<p>Previous encoders such as x264 worked around this problem by limiting
+the motion search region within these reference frames to just one
+macroblock row below the coincident row being encoded. Thus a frame
+could be encoded at the same time as its reference frames so long as it
+stayed one row behind the encode progress of its references (glossing
+over a few details).</p>
+<p>x265 has the same frame threading mechanism, but we generally have much
+less frame parallelism to exploit than x264 because of the size of our
+CTU rows. For instance, with 1080p video x264 has 68 16x16 macroblock
+rows available each frame while x265 only has 17 64x64 CTU rows.</p>
+<p>The second extenuating circumstance is the loop filters. The pixels used
+for motion reference must be processed by the loop filters and the loop
+filters cannot run until a full row has been encoded, and it must run a
+full row behind the encode process so that the pixels below the row
+being filtered are available. On top of this, HEVC has two loop filters:
+deblocking and SAO, which must be run in series with a row lag between
+them. When you add up all the row lags each frame ends up being 3 CTU
+rows behind its reference frames (the equivalent of 12 macroblock rows
+for x264). And keep in mind the wave-front progression pattern; by the
+time the reference frame finishes the third row of CTUs, nearly half of
+the CTUs in the frame may be compressed (depending on the display aspect
+ratio).</p>
+<p>The third extenuating circumstance is that when a frame being encoded
+becomes blocked by a reference frame row being available, that frame’s
+wave-front becomes completely stalled and when the row becomes available
+again it can take quite some time for the wave to be restarted, if it
+ever does. This makes WPP less effective when frame parallelism is in
+use.</p>
+<p><a class="reference internal" href="cli.html#cmdoption-merange"><code class="xref std std-option docutils literal notranslate"><span class="pre">--merange</span></code></a> can have a negative impact on frame parallelism. If
+the range is too large, more rows of CTU lag must be added to ensure
+those pixels are available in the reference frames.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Even though the merange is used to determine the amount of reference
+pixels that must be available in the reference frames, the actual
+motion search is not necessarily centered around the coincident
+block. The motion search is actually centered around the motion
+predictor, but the available pixel area (mvmin, mvmax) is determined
+by merange and the interpolation filter half-heights.</p>
+</div>
+<p>When frame threading is disabled, the entirety of all reference frames
+are always fully available (by definition) and thus the available pixel
+area is not restricted at all, and this can sometimes improve
+compression efficiency. Because of this, the output of encodes with
+frame parallelism disabled will not match the output of encodes with
+frame parallelism enabled; but when enabled the number of frame threads
+should have no effect on the output bitstream except when using ABR or
+VBV rate control or noise reduction.</p>
+<p>When <code class="xref std std-option docutils literal notranslate"><span class="pre">--nr</span></code> is enabled, the outputs of each number of frame threads
+will be deterministic but none of them will match becaue each frame
+encoder maintains a cumulative noise reduction state.</p>
+<p>VBV introduces non-determinism in the encoder, at this point in time,
+regardless of the amount of frame parallelism.</p>
+<p>By default frame parallelism and WPP are enabled together. The number of
+frame threads used is auto-detected from the (hyperthreaded) CPU core
+count, but may be manually specified via <a class="reference internal" href="cli.html#cmdoption-frame-threads"><code class="xref std std-option docutils literal notranslate"><span class="pre">--frame-threads</span></code></a></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 47%" />
+<col style="width: 53%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Cores</p></th>
+<th class="head"><p>Frames</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>&gt; 32</p></td>
+<td><p>6..8</p></td>
+</tr>
+<tr class="row-odd"><td><p>&gt;= 16</p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-even"><td><p>&gt;= 8</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>&gt;= 4</p></td>
+<td><p>2</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>If WPP is disabled, then the frame thread count defaults to <strong>min(cpuCount, ctuRows / 2)</strong></p>
+<p>Over-allocating frame threads can be very counter-productive. They
+each allocate a large amount of memory and because of the limited number
+of CTU rows and the reference lag, you generally get limited benefit
+from adding frame encoders beyond the auto-detected count, and often
+the extra frame encoders reduce performance.</p>
+<p>Given these considerations, you can understand why the faster presets
+lower the max CTU size to 32x32 (making twice as many CTU rows available
+for WPP and for finer grained frame parallelism) and reduce
+<a class="reference internal" href="cli.html#cmdoption-merange"><code class="xref std std-option docutils literal notranslate"><span class="pre">--merange</span></code></a></p>
+<p>Each frame encoder runs in its own thread (allocated separately from the
+worker pool). This frame thread has some pre-processing responsibilities
+and some post-processing responsibilities for each frame, but it spends
+the bulk of its time managing the wave-front processing by making CTU
+rows available to the worker threads when their dependencies are
+resolved.  The frame encoder threads spend nearly all of their time
+blocked in one of 4 possible locations:</p>
+<ol class="arabic simple">
+<li><p>blocked, waiting for a frame to process</p></li>
+<li><p>blocked on a reference frame, waiting for a CTU row of reconstructed
+and loop-filtered reference pixels to become available</p></li>
+<li><p>blocked waiting for wave-front completion</p></li>
+<li><p>blocked waiting for the main thread to consume an encoded frame</p></li>
+</ol>
+</div>
+<div class="section" id="lookahead">
+<h2>Lookahead<a class="headerlink" href="#lookahead" title="Permalink to this headline">¶</a></h2>
+<p>The lookahead module of x265 (the lowres pre-encode which determines
+scene cuts and slice types) uses the thread pool to distribute the
+lowres cost analysis to worker threads. It will use bonded task groups
+to perform batches of frame cost estimates, and it may optionally use
+bonded task groups to measure single frame cost estimates using slices.
+(see <a class="reference internal" href="cli.html#cmdoption-lookahead-slices"><code class="xref std std-option docutils literal notranslate"><span class="pre">--lookahead-slices</span></code></a>)</p>
+<p>The main slicetypeDecide() function itself is also performed by a worker
+thread if your encoder has a thread pool, else it runs within the
+context of the thread which calls the x265_encoder_encode().</p>
+</div>
+<div class="section" id="sao">
+<h2>SAO<a class="headerlink" href="#sao" title="Permalink to this headline">¶</a></h2>
+<p>The Sample Adaptive Offset loopfilter has a large effect on encode
+performance because of the peculiar way it must be analyzed and coded.</p>
+<p>SAO flags and data are encoded at the CTU level before the CTU itself is
+coded, but SAO analysis (deciding whether to enable SAO and with what
+parameters) cannot be performed until that CTU is completely analyzed
+(reconstructed pixels are available) as well as the CTUs to the right
+and below.  So in effect the encoder must perform SAO analysis in a
+wavefront at least a full row behind the CTU compression wavefront.</p>
+<p>This extra latency forces the encoder to save the encode data of every
+CTU until the entire frame has been analyzed, at which point a function
+can code the final slice bitstream with the decided SAO flags and data
+interleaved between each CTU.  This second pass over the CTUs can be
+expensive, particularly at large resolutions and high bitrates.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Threading</a><ul>
+<li><a class="reference internal" href="#thread-pools">Thread Pools</a></li>
+<li><a class="reference internal" href="#wavefront-parallel-processing">Wavefront Parallel Processing</a></li>
+<li><a class="reference internal" href="#bonded-task-groups">Bonded Task Groups</a><ul>
+<li><a class="reference internal" href="#parallel-mode-analysis">Parallel Mode Analysis</a></li>
+<li><a class="reference internal" href="#parallel-motion-estimation">Parallel Motion Estimation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#frame-threading">Frame Threading</a></li>
+<li><a class="reference internal" href="#lookahead">Lookahead</a></li>
+<li><a class="reference internal" href="#sao">SAO</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="previous chapter">Application Programming Interface</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="presets.html"
+                        title="next chapter">Preset Options</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/threading.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="presets.html" title="Preset Options"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="Application Programming Interface"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">x265  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014 MulticoreWare Inc.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
+    </div>
+  </body>
+</html>

@@ -29,6 +29,9 @@
 
 using namespace X265_NS;
 
+/** 函数功能    ：初始化Frmae
+/*  调用范围    ：只在Encoder::encode函数中被调用
+* \返回值       ：null **/
 Frame::Frame()
 {
     m_bChromaExtended = false;
@@ -59,6 +62,9 @@ Frame::Frame()
     m_fieldNum = 0;
 }
 
+/** 函数功能    ：申请原始帧m_fencPic与1/2下采样帧空间并将其初始化
+/*  调用范围    ：只在Encoder::encode函数中被调用
+* \返回值       ：申请空间成功为ture，否则为false*/
 bool Frame::create(x265_param *param, float* quantOffsets)
 {
     m_fencPic = new PicYuv;
@@ -97,6 +103,7 @@ bool Frame::create(x265_param *param, float* quantOffsets)
         CHECKED_MALLOC_ZERO(m_classifyCount, uint32_t, size);
     }
 
+	//申请原始帧m_fencPic与1/2下采样帧空间并将其初始化
     if (m_fencPic->create(param, !!m_param->bCopyPicToFrame) && m_lowres.create(param, m_fencPic, param->rc.qgSize))
     {
         X265_CHECK((m_reconColCount == NULL), "m_reconColCount was initialized");
@@ -117,12 +124,16 @@ fail:
     return false;
 }
 
+/** 函数功能    ：申请重构帧内存并初始化为0，申请一帧CTU的存储空间，初始化CTU、初始化统计信息
+/*  调用范围    ：只在Encoder::encode函数中被调用
+* \返回值       ：申请空间成功为ture，否则为false
+*/
 bool Frame::allocEncodeData(x265_param *param, const SPS& sps)
 {
     m_encData = new FrameData;
     m_reconPic = new PicYuv;
     m_param = param;
-    m_encData->m_reconPic = m_reconPic;
+    m_encData->m_reconPic = m_reconPic; //获取存储重构帧的指针
     bool ok = m_encData->create(*param, sps, m_fencPic->m_picCsp) && m_reconPic->create(param);
     if (ok)
     {
@@ -156,6 +167,10 @@ void Frame::reinit(const SPS& sps)
     m_encData->reinit(sps);
 }
 
+/** 函数功能    ：释放内存
+/*  调用范围    ：只在Encoder::encode、Lookahead::destroy()和~DPB()函数中被调用
+* \返回值       ：null
+*/
 void Frame::destroy()
 {
     if (m_encData)

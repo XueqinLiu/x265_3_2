@@ -70,6 +70,7 @@ Search::Search()
     m_maxTUDepth = -1;
 }
 
+/*FrameEncoder::threadMain()ÖÐµ÷ÓÃ*/
 bool Search::initSearch(const x265_param& param, ScalingList& scalingList)
 {
     uint32_t maxLog2CUSize = g_log2Size[param.maxCUSize];
