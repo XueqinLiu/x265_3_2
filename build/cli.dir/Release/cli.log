@@ -1,0 +1,12 @@
+﻿  Building Custom Rule C:/wgq/Codec/x265_3.2/source/CMakeLists.txt
+  input.cpp
+  output.cpp
+  raw.cpp
+  reconplay.cpp
+  x265.cpp
+  y4m.cpp
+  yuv.cpp
+  y4m.cpp
+  yuv.cpp
+  getopt.c
+  cli.vcxproj -> C:\wgq\Codec\x265_3.2\build\Release\x265.exe

@@ -111,6 +111,11 @@ public:
     void awaken()           { m_wakeEvent.trigger(); }
 };
 
+/** 函数功能             ：??在tryWakeOne中返回当前机器任意一个正在睡眠的核，tryBondPeers返回当前线程拥有核且正在睡眠的核
+/*  调用范围             ：??只在 JobProvider::tryWakeOne()和ThreadPool::tryBondPeers函数中被调用
+* \参数 firstTryBitmap   ：??为Job的m_ownerBitmap (如4核机器：一般传入是-1~15的数据)或者直接指定为-1
+* \参数 secondTryBitmap  ：只有0 和 -1 两个值能够传进来，tryBondPeers为0 tryWakeOne() 为-1(全为1，mask值)
+* \返回                  ：??在tryWakeOne中返回当前机器任意一个正在睡眠的核，tryBondPeers返回当前线程拥有核且正在睡眠的核 * */
 void WorkerThread::threadMain()
 {
     THREAD_NAME("Worker", m_id);

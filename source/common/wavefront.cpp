@@ -87,6 +87,10 @@ bool WaveFront::dequeueRow(int row)
     return !!(ATOMIC_AND(&m_internalDependencyBitmap[row >> 5], ~bit) & bit);
 }
 
+/** 函数功能             ： 触发WPP（在threadMain()主动发起） 只进行处理一个CTU行即退出（不一定执行完毕）（其它CTU需要重新触发）
+/*  调用范围             ： 只在WorkerThread::threadMain()（在compressFrame()、processRowEncoder通过tryWakeOne()中触发执行）
+* \参数 threadId         ： 当前的内核号
+* \返回                  ： null * */
 void WaveFront::findJob(int threadId)
 {
     unsigned long id;

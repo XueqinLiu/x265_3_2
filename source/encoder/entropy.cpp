@@ -763,6 +763,8 @@ void Entropy::codeShortTermRefPicSet(const RPS& rps, int idx)
     }
 }
 
+
+//FrameEncoder::processRowEncoderÖÐµ÷ÓÃ
 void Entropy::encodeCTU(const CUData& ctu, const CUGeom& cuGeom)
 {
     bool bEncodeDQP = ctu.m_slice->m_pps->bUseDQP;

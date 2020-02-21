@@ -815,7 +815,7 @@ void FrameEncoder::compressFrame()
      * filters runs behind the CTU compression and reconstruction */
 
     for (uint32_t sliceId = 0; sliceId < m_param->maxSlices; sliceId++)    
-        m_rows[m_sliceBaseRow[sliceId]].active = true;
+        m_rows[m_sliceBaseRow[sliceId]].active = true; //触发CTU行
     
     if (m_param->bEnableWavefront)
     {
@@ -869,21 +869,23 @@ void FrameEncoder::compressFrame()
                     }
                 }
 
+				//当前外部参考块（如参考帧对应的参考块）准备完毕 将当前row对应位置的map置为1 标记可以执行/
                 enableRowEncoder(m_row_to_idx[row]); /* clear external dependency for this row */
                 if (!rowInSlice)
                 {
                     m_row0WaitTime = x265_mdate();
                     enqueueRowEncoder(m_row_to_idx[row]); /* clear internal dependency, start wavefront */
                 }
-                tryWakeOne();
+                tryWakeOne();//CTU行准备好并触发wpp， 在findjob中运行
             } // end of loop rowInSlice
         } // end of loop sliceId
 
         m_allRowsAvailableTime = x265_mdate();
         tryWakeOne(); /* ensure one thread is active or help-wanted flag is set prior to blocking */
         static const int block_ms = 250;
+		//每250ms触发一次 保证全部CTU行都能够执行  （如果m_completionEvent 在某一位置触发，则会造成不超时，循环退出）
         while (m_completionEvent.timedWait(block_ms))
-            tryWakeOne();
+            tryWakeOne(); 
     }
     else
     {
@@ -1007,7 +1009,7 @@ void FrameEncoder::compressFrame()
     m_entropyCoder.setBitstream(&m_bs);
 
     // finish encode of each CTU row, only required when SAO is enabled
-    if (slice->m_bUseSao)
+    if (slice->m_bUseSao)  //
         encodeSlice(0);  //编码slice
 
     m_entropyCoder.setBitstream(&m_bs);
@@ -1314,6 +1316,11 @@ void FrameEncoder::encodeSlice(uint32_t sliceAddr)
         m_entropyCoder.finishSlice();
 }
 
+/** 函数功能             ： ？？触发WPP（在threadMain()主动发起） 只进行一个CTU行即退出（其它CTU需要重新触发）
+/*  调用范围             ： 只在WaveFront::findJob函数中被调用
+* \参数 row              ： 当前的row号（CTU行*2+x）x=0 为编码  x=1为滤波
+* \参数 threadId         ： 当前的内核号
+* \返回                  ： null * */
 void FrameEncoder::processRow(int row, int threadId)
 {
     int64_t startTime = x265_mdate();
@@ -1341,6 +1348,7 @@ void FrameEncoder::processRow(int row, int threadId)
 }
 
 // Called by worker threads
+//FrameEncoder::processRow(int row, int threadId)中调用
 void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
 {
     const uint32_t row = (uint32_t)intRow;
@@ -1454,7 +1462,7 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
     if (tld.analysis.m_sliceMaxY < tld.analysis.m_sliceMinY)
         tld.analysis.m_sliceMaxY = tld.analysis.m_sliceMinY = 0;
 
-
+	//遍历当前CTU行所有的CTU
     while (curRow.completed < numCols)
     {
         ProfileScopeEvent(encodeCTU);
@@ -1463,7 +1471,7 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
         const uint32_t cuAddr = lineStartCUAddr + col;
         CUData* ctu = curEncData.getPicCTU(cuAddr);
         const uint32_t bLastCuInSlice = (bLastRowInSlice & (col == numCols - 1)) ? 1 : 0;
-        ctu->initCTU(*m_frame, cuAddr, slice->m_sliceQp, bFirstRowInSlice, bLastRowInSlice, bLastCuInSlice);
+        ctu->initCTU(*m_frame, cuAddr, slice->m_sliceQp, bFirstRowInSlice, bLastRowInSlice, bLastCuInSlice); //初始化
 
         if (bIsVbv)
         {
@@ -1520,7 +1528,7 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
             ctu->m_vbvAffected = true;
 
         // Does all the CU analysis, returns best top level mode decision
-        Mode& best = tld.analysis.compressCTU(*ctu, *m_frame, m_cuGeoms[m_ctuGeomMap[cuAddr]], rowCoder);
+        Mode& best = tld.analysis.compressCTU(*ctu, *m_frame, m_cuGeoms[m_ctuGeomMap[cuAddr]], rowCoder); //压缩CTU
 
         /* startPoint > encodeOrder is true when the start point changes for
         a new GOP but few frames from the previous GOP is still incomplete.
@@ -1534,7 +1542,7 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
 
         /* advance top-level row coder to include the context of this CTU.
          * if SAO is disabled, rowCoder writes the final CTU bitstream */
-        rowCoder.encodeCTU(*ctu, m_cuGeoms[m_ctuGeomMap[cuAddr]]);
+        rowCoder.encodeCTU(*ctu, m_cuGeoms[m_ctuGeomMap[cuAddr]]);  //编码CTU
 
         if (m_param->bEnableWavefront && col == 1)
             // Save CABAC state for next row

@@ -1,0 +1,20 @@
+﻿  Building Custom Rule C:/wgq/Codec/x265_3.2/source/encoder/CMakeLists.txt
+  analysis.cpp
+  search.cpp
+  bitcost.cpp
+  motion.cpp
+  slicetype.cpp
+  frameencoder.cpp
+  framefilter.cpp
+  level.cpp
+  nal.cpp
+  sei.cpp
+  sao.cpp
+  entropy.cpp
+  dpb.cpp
+  ratecontrol.cpp
+  reference.cpp
+  encoder.cpp
+  api.cpp
+  weightPrediction.cpp
+  encoder.vcxproj -> C:\wgq\Codec\x265_3.2\build\encoder\encoder.dir\Release\encoder.lib

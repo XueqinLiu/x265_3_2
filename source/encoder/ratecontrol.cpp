@@ -146,14 +146,15 @@ x265_zone* RateControl::getZone()
     return NULL;
 }
 
+//Encoder::create()中调用
 RateControl::RateControl(x265_param& p)
 {
-    m_param = &p;
-    int lowresCuWidth = ((m_param->sourceWidth / 2) + X265_LOWRES_CU_SIZE - 1) >> X265_LOWRES_CU_BITS;
-    int lowresCuHeight = ((m_param->sourceHeight / 2) + X265_LOWRES_CU_SIZE - 1) >> X265_LOWRES_CU_BITS;
-    m_ncu = lowresCuWidth * lowresCuHeight;
+    m_param = &p; //获取当前配置参数
+    int lowresCuWidth = ((m_param->sourceWidth / 2) + X265_LOWRES_CU_SIZE - 1) >> X265_LOWRES_CU_BITS;  //1/2下采样帧中一行有多少8x8块
+    int lowresCuHeight = ((m_param->sourceHeight / 2) + X265_LOWRES_CU_SIZE - 1) >> X265_LOWRES_CU_BITS; //1/2下采样帧中一列有多少8x8块
+    m_ncu = lowresCuWidth * lowresCuHeight; //1/2下采样帧中的8x8块个数
 
-    m_qCompress = (m_param->rc.cuTree && !m_param->rc.hevcAq) ? 1 : m_param->rc.qCompress;
+    m_qCompress = (m_param->rc.cuTree && !m_param->rc.hevcAq) ? 1 : m_param->rc.qCompress; //如果应用cutree 设置强度系数为1 否则从配置参数中获取
 
     // validate for param->rc, maybe it is need to add a function like x265_parameters_valiate()
     m_residualFrames = 0;
@@ -171,7 +172,7 @@ RateControl::RateControl(x265_param& p)
     m_lastPredictorReset = 0;
     m_avgPFrameQp = 0;
     m_isFirstMiniGop = false;
-    if (m_param->rc.rateControlMode == X265_RC_CRF)
+    if (m_param->rc.rateControlMode == X265_RC_CRF)  //ABR
     {
         m_param->rc.qp = (int)m_param->rc.rfConstant;
         m_param->rc.bitrate = 0;
@@ -192,11 +193,11 @@ RateControl::RateControl(x265_param& p)
         if (m_param->rc.rfConstantMin)
             m_rateFactorMaxDecrement = m_param->rc.rfConstant - m_param->rc.rfConstantMin;
     }
-    m_isAbr = m_param->rc.rateControlMode != X265_RC_CQP && !m_param->rc.bStatRead;
-    m_2pass = m_param->rc.rateControlMode != X265_RC_CQP && m_param->rc.bStatRead;
-    m_bitrate = m_param->rc.bitrate * 1000;
-    m_frameDuration = (double)m_param->fpsDenom / m_param->fpsNum;
-    m_qp = m_param->rc.qp;
+    m_isAbr = m_param->rc.rateControlMode != X265_RC_CQP && !m_param->rc.bStatRead; //ture
+    m_2pass = m_param->rc.rateControlMode != X265_RC_CQP && m_param->rc.bStatRead;  //false
+    m_bitrate = m_param->rc.bitrate * 1000;  //获取配置码率
+    m_frameDuration = (double)m_param->fpsDenom / m_param->fpsNum; //当前播放一帧占用的时间（单位秒）
+    m_qp = m_param->rc.qp; //获取配置的固定QP
     m_lastRceq = 1; /* handles the cmplxrsum when the previous frame cost is zero */
     m_shortTermCplxSum = 0;
     m_shortTermCplxCount = 0;
@@ -211,7 +212,7 @@ RateControl::RateControl(x265_param& p)
     m_movingAvgSum = 0.0;
     m_isNextGop = false;
 
-    // vbv initialization
+    // vbv initialization 初始化缓冲区大小 Video Bu Verifier
     m_param->rc.vbvBufferSize = x265_clip3(0, 2000000, m_param->rc.vbvBufferSize);
     m_param->rc.vbvMaxBitrate = x265_clip3(0, 2000000, m_param->rc.vbvMaxBitrate);
     m_param->rc.vbvBufferInit = x265_clip3(0.0, 2000000.0, m_param->rc.vbvBufferInit);
@@ -220,7 +221,7 @@ RateControl::RateControl(x265_param& p)
     m_singleFrameVbv = 0;
     m_rateTolerance = 1.0;
 
-    if (m_param->rc.vbvBufferSize)
+    if (m_param->rc.vbvBufferSize)  //初始化结果为0？
     {
         if (m_param->rc.rateControlMode == X265_RC_CQP)
         {
@@ -253,7 +254,7 @@ RateControl::RateControl(x265_param& p)
         x265_log(m_param, X265_LOG_WARNING, "VBV maxrate specified, but no bufsize, ignored\n");
         m_param->rc.vbvMaxBitrate = 0;
     }
-    m_isVbv = m_param->rc.vbvMaxBitrate > 0 && m_param->rc.vbvBufferSize > 0;
+    m_isVbv = m_param->rc.vbvMaxBitrate > 0 && m_param->rc.vbvBufferSize > 0; //false
     if (m_param->vbvBufferEnd && !m_isVbv)
     {
         x265_log(m_param, X265_LOG_WARNING, "vbv-end requires VBV parameters, ignored\n");
@@ -275,31 +276,32 @@ RateControl::RateControl(x265_param& p)
 
     m_bframeBits = 0;
     m_leadingNoBSatd = 0;
-    m_ipOffset = 6.0 * X265_LOG2(m_param->rc.ipFactor);
-    m_pbOffset = 6.0 * X265_LOG2(m_param->rc.pbFactor);
+    m_ipOffset = 6.0 * X265_LOG2(m_param->rc.ipFactor); //用途：I帧与P帧的qp参数关系  P = Iqp + m_ipOffset 默认 2.9125608156077503
+    m_pbOffset = 6.0 * X265_LOG2(m_param->rc.pbFactor); //用途：P帧与B帧的qp参数关系  B = Pqp + m_pbOffset 默认 2.2710694220159415
 
     for (int i = 0; i < QP_MAX_MAX; i++)
         m_qpToEncodedBits[i] = 0;
 
     /* Adjust the first frame in order to stabilize the quality level compared to the rest */
-#define ABR_INIT_QP_MIN (24)
+#define ABR_INIT_QP_MIN (24) //ABR默认的最小QP
 #define ABR_INIT_QP_MAX (37)
-#define ABR_INIT_QP_GRAIN_MAX (33)
-#define ABR_SCENECUT_INIT_QP_MIN (12)
-#define CRF_INIT_QP (int)m_param->rc.rfConstant
-    for (int i = 0; i < 3; i++)
+#define ABR_INIT_QP_GRAIN_MAX (33) 
+#define ABR_SCENECUT_INIT_QP_MIN (12) //场景切换的最小QP 12
+#define CRF_INIT_QP (int)m_param->rc.rfConstant //CRF模式下的默认QP
+    for (int i = 0; i < 3; i++) //初始化Qsclae
     {
         m_lastQScaleFor[i] = x265_qp2qScale(m_param->rc.rateControlMode == X265_RC_CRF ? CRF_INIT_QP : ABR_INIT_QP_MIN);
         m_lmin[i] = x265_qp2qScale(m_param->rc.qpMin);
         m_lmax[i] = x265_qp2qScale(m_param->rc.qpMax);
     }
 
+	//如果是固定QP
     if (m_param->rc.rateControlMode == X265_RC_CQP)
     {
         if (m_qp && !m_param->bLossless)
         {
-            m_qpConstant[P_SLICE] = m_qp;
-            m_qpConstant[I_SLICE] = x265_clip3(QP_MIN, QP_MAX_MAX, (int)(m_qp - m_ipOffset + 0.5));
+            m_qpConstant[P_SLICE] = m_qp; //P帧获取QP
+            m_qpConstant[I_SLICE] = x265_clip3(QP_MIN, QP_MAX_MAX, (int)(m_qp - m_ipOffset + 0.5)); //I帧获取QP
             m_qpConstant[B_SLICE] = x265_clip3(QP_MIN, QP_MAX_MAX, (int)(m_qp + m_pbOffset + 0.5));
         }
         else
@@ -309,15 +311,16 @@ RateControl::RateControl(x265_param& p)
     }
 
     /* qpstep - value set as encoder specific */
-    m_lstep = pow(2, m_param->rc.qpStep / 6.0);
+    m_lstep = pow(2, m_param->rc.qpStep / 6.0); //初始化m_lstep
 
     for (int i = 0; i < 2; i++)
         m_cuTreeStats.qpBuffer[i] = NULL;
 }
 
+//Encoder::create()中调用
 bool RateControl::init(const SPS& sps)
 {
-    if (m_isVbv && !m_initVbv)
+    if (m_isVbv && !m_initVbv) //false
     {
         /* We don't support changing the ABR bitrate right now,
          * so if the stream starts as CBR, keep it CBR. */
@@ -328,7 +331,7 @@ bool RateControl::init(const SPS& sps)
                      m_param->rc.vbvBufferSize);
         }
         int vbvBufferSize = m_param->rc.vbvBufferSize * 1000;
-        int vbvMaxBitrate = m_param->rc.vbvMaxBitrate * 1000;
+        int vbvMaxBitrate = m_param->rc.vbvMaxBitrate * 1000; //一秒钟占用的最大bits
 
         if (m_param->bEmitHRDSEI)
         {
@@ -336,10 +339,10 @@ bool RateControl::init(const SPS& sps)
             vbvBufferSize = hrd->cpbSizeValue << (hrd->cpbSizeScale + CPB_SHIFT);
             vbvMaxBitrate = hrd->bitRateValue << (hrd->bitRateScale + BR_SHIFT);
         }
-        m_bufferRate = vbvMaxBitrate / m_fps;
-        m_vbvMaxRate = vbvMaxBitrate;
-        m_bufferSize = vbvBufferSize;
-        m_singleFrameVbv = m_bufferRate * 1.1 > m_bufferSize;
+        m_bufferRate = vbvMaxBitrate / m_fps; //平均每帧最大的bits占用数目
+        m_vbvMaxRate = vbvMaxBitrate; //一秒钟占用的最大bits
+        m_bufferSize = vbvBufferSize; //获取一秒的bits buffer大小
+        m_singleFrameVbv = m_bufferRate * 1.1 > m_bufferSize; //如果平均每帧最大的bits占用数目*1.1 大于一秒的bits buffer大小
 
         if (m_param->rc.vbvBufferInit > 1.)
             m_param->rc.vbvBufferInit = x265_clip3(0.0, 1.0, m_param->rc.vbvBufferInit / m_param->rc.vbvBufferSize);
@@ -367,7 +370,7 @@ bool RateControl::init(const SPS& sps)
         m_amortizeFrames = m_param->totalFrames / 2;
     }
 
-    for (int i = 0; i < s_slidingWindowFrames; i++)
+    for (int i = 0; i < s_slidingWindowFrames; i++)  //s_slidingWindowFrames=20
     {
         m_satdCostWindow[i] = 0;
         m_encodedBitsWindow[i] = 0;
@@ -383,19 +386,20 @@ bool RateControl::init(const SPS& sps)
         m_lastQScaleFor[i] = x265_qp2qScale(m_param->rc.rateControlMode == X265_RC_CRF ? CRF_INIT_QP : ABR_INIT_QP_MIN);
     m_avgPFrameQp = 0 ;
 
-    /* 720p videos seem to be a good cutoff for cplxrSum */
+    /* 720p videos seem to be a good cutoff for cplxrSum */ 
+	//720p以上参数为2.5 以下为1.0
     double tuneCplxFactor = (m_ncu > 3600 && m_param->rc.cuTree && !m_param->rc.hevcAq) ? 2.5 : m_param->rc.hevcAq ? 1.5 : m_isGrainEnabled ? 1.9 : 1.0;
 
     /* estimated ratio that produces a reasonable QP for the first I-frame */
-    m_cplxrSum = .01 * pow(7.0e5, m_qCompress) * pow(m_ncu, 0.5) * tuneCplxFactor;
-    m_wantedBitsWindow = m_bitrate * m_frameDuration;
+    m_cplxrSum = .01 * pow(7.0e5, m_qCompress) * pow(m_ncu, 0.5) * tuneCplxFactor; //初始化用于估计第一帧I帧的QP参数
+    m_wantedBitsWindow = m_bitrate * m_frameDuration; //初始化当前第一帧需要的bit数目
     m_accumPNorm = .01;
-    m_accumPQp = (m_param->rc.rateControlMode == X265_RC_CRF ? CRF_INIT_QP : ABR_INIT_QP_MIN) * m_accumPNorm;
+    m_accumPQp = (m_param->rc.rateControlMode == X265_RC_CRF ? CRF_INIT_QP : ABR_INIT_QP_MIN) * m_accumPNorm; //24*0.01
 
 
     /* Frame Predictors used in vbv */
     initFramePredictors();
-    if (!m_statFileOut && (m_param->rc.bStatWrite || m_param->rc.bStatRead))
+    if (!m_statFileOut && (m_param->rc.bStatWrite || m_param->rc.bStatRead))  //false
     {
         /* If the user hasn't defined the stat filename, use the default value */
         const char *fileName = m_param->rc.statFileName;
@@ -1198,8 +1202,10 @@ int RateControl::rateControlSliceType(int frameNum)
         return X265_TYPE_AUTO;
 }
 
+//只在RateControl::init和RateControl::rateControlStart函数中被调用
 void RateControl::initFramePredictors()
 {
+	//在初始化和场景切换帧处重置
     /* Frame Predictors used in vbv */
     for (int i = 0; i < 4; i++)
     {
@@ -1220,13 +1226,29 @@ void RateControl::initFramePredictors()
     }
 }
 
+/** 函数功能             ： 计算估计当前帧应用的量化参数
+/*  调用范围             ： 只在FrameEncoder::compressFrame()函数中被调用
+* \参数 curFrame         ： 当前编码帧
+* \参数 rce              ： 当前帧的RC编码参数类
+* \参数 enc              ： 上层encodr类
+* \返回                  ： 返回当前帧估计的量化参数 * */
 int RateControl::rateControlStart(Frame* curFrame, RateControlEntry* rce, Encoder* enc)
 {
-    int orderValue = m_startEndOrder.get();
-    int startOrdinal = rce->encodeOrder * 2;
+	//功能：
+	//     1.循环等待触发
+	//     2.初始化RC帧类型等基本信息
+	//     3.如果是2pass：？？？
+	//     4.根据场景切换帧信息选择是否初始化Predictor
+	//     5.如果应用VBV：更新bitsbuffer 根据当前level规定设置当前帧最大占用的bits
+	//     6.如果应用ABR,CRF或者当前为2pass：估计当前帧的m_qp值
+	//       否则 如果是CQP模式   获取当前帧的QP值 （加上相应的offset）
+	//     7.更新数据 并返回当前帧估计的量化参数
 
-    while (orderValue < startOrdinal && !m_bTerminated)
-        orderValue = m_startEndOrder.waitForChange(orderValue);
+    int orderValue = m_startEndOrder.get(); //获取当前RC线程控制参量
+    int startOrdinal = rce->encodeOrder * 2;//触发参量值
+
+    while (orderValue < startOrdinal && !m_bTerminated) //循环等待
+        orderValue = m_startEndOrder.waitForChange(orderValue); //等待参量数据改变
 
     if (!curFrame)
     {
@@ -1235,15 +1257,17 @@ int RateControl::rateControlStart(Frame* curFrame, RateControlEntry* rce, Encode
         return 0;
     }
 
-    FrameData& curEncData = *curFrame->m_encData;
-    m_curSlice = curEncData.m_slice;
-    m_sliceType = m_curSlice->m_sliceType;
-    rce->sliceType = m_sliceType;
-    if (!m_2pass)
-        rce->keptAsRef = IS_REFERENCED(curFrame);
-    m_predType = getPredictorType(curFrame->m_lowres.sliceType, m_sliceType);
-    rce->poc = m_curSlice->m_poc;
+    FrameData& curEncData = *curFrame->m_encData; //获取当前帧的编码信息
+    m_curSlice = curEncData.m_slice; //获取当前帧的slice
+    m_sliceType = m_curSlice->m_sliceType; //获取当前的slice类型
+    rce->sliceType = m_sliceType; //获取当前的slice类型
+    if (!m_2pass) //如果是1pass
+        rce->keptAsRef = IS_REFERENCED(curFrame); //判断当前是否可作参考帧
 
+	//获取predictor应用的标号 0：不可参考b帧 1： P帧  2：I帧 3：可参考B帧
+    m_predType = getPredictorType(curFrame->m_lowres.sliceType, m_sliceType);
+    rce->poc = m_curSlice->m_poc; //获取当前poc
+	 
     /* change ratecontrol stats for next zone if specified */
     for (int i = 0; i < m_param->rc.zonefileCount; i++)
     {
@@ -1260,31 +1284,40 @@ int RateControl::rateControlStart(Frame* curFrame, RateControlEntry* rce, Encode
         int index = m_encOrder[rce->poc];
         copyRceData(rce, &m_rce2Pass[index]);
     }
-    rce->isActive = true;
-    rce->scenecut = false;
+    rce->isActive = true; //RC启动
+    rce->scenecut = false; ///场景切换
     rce->isFadeEnd = curFrame->m_lowres.bIsFadeEnd;
+
+	//如果其前向第一个参考帧为场景切换帧
+	//设x为场景切换帧
+	//IBBBPBBBxBBBPBBBP  对应m_isSceneTransition值
     bool isRefFrameScenecut = m_sliceType!= I_SLICE && m_curSlice->m_refFrameList[0][0]->m_lowres.bScenecut;
     m_isFirstMiniGop = m_sliceType == I_SLICE ? true : m_isFirstMiniGop;
-    if (curFrame->m_lowres.bScenecut)
+    if (curFrame->m_lowres.bScenecut) //如果当前帧为场景切换帧
     {
-        m_isSceneTransition = true;
+        m_isSceneTransition = true; //场景切换帧置为ture
         rce->scenecut = true;
         m_lastPredictorReset = rce->encodeOrder;
 
-        initFramePredictors();
+        initFramePredictors(); //初始化Predictor
     }
-    else if (m_sliceType != B_SLICE && !isRefFrameScenecut)
-        m_isSceneTransition = false;
+    else if (m_sliceType != B_SLICE && !isRefFrameScenecut) //当前是P帧或者不是场景切换帧的I帧   并且 前向参考不是场景切换帧
+        m_isSceneTransition = false; //置为false
 
     if (rce->encodeOrder < m_lastPredictorReset + m_param->frameNumThreads)
     {
         rce->rowPreds[0][0].count = 0;
     }
 
-    rce->bLastMiniGopBFrame = curFrame->m_lowres.bLastMiniGopBFrame;
-    rce->bufferRate = m_bufferRate;
+    rce->bLastMiniGopBFrame = curFrame->m_lowres.bLastMiniGopBFrame; //标记当前帧是否为当前GOP的最后一个B帧
+    rce->bufferRate = m_bufferRate; //平均每帧最大的bits占用数目
     rce->rowCplxrSum = 0.0;
     rce->rowTotalBits = 0;
+
+	//功能：更新bitsbuffer 根据当前level规定设置当前帧最大占用的bits
+	//      1.根据情况初始化Predictor （场景切换帧后）
+	//      2.更新bitsbuffer
+	//      3.根据当前level下最小压缩比设置当前帧相应的frameSizeMaximum（当前帧占用的最大bits）
     if (m_isVbv)
     {
         if (rce->rowPreds[0][0].count == 0)
@@ -1346,32 +1379,39 @@ int RateControl::rateControlStart(Frame* curFrame, RateControlEntry* rce, Encode
         return m_qp;
     }
 
+	//功能：估计当前帧的m_qp值
+	//    1.如果应用ABR或者VBV 获取framecost 记录连续b帧cost相同数目，并在后一个非B帧中设置为同一模式(个数大于配置的B帧个数时)
+	//    2.预估当前帧的m_qp
     if (m_isAbr || m_2pass) // ABR,CRF
     {
         if (m_isAbr || m_isVbv)
         {
+			//获取当前的framecost 如果需要参考帧，取参考帧列表中各自第一帧当做参考帧的framecost
             m_currentSatd = curFrame->m_lowres.satdCost >> (X265_DEPTH - 8);
             /* Update rce for use in rate control VBV later */
-            rce->lastSatd = m_currentSatd;
+            rce->lastSatd = m_currentSatd; //更新当前最新的SATD值
             X265_CHECK(rce->lastSatd, "satdcost cannot be zero\n");
             /* Detect a pattern for B frames with same SATDcost to identify a series of static frames
              * and the P frame at the end of the series marks a possible case for ABR reset logic */
+			 //如果有B帧 功能：记录连续b帧cost相同数目，并在后一个非B帧中设置为同一模式(个数大于配置的B帧个数时)
             if (m_param->bframes)
             {
-                if (m_sliceType != B_SLICE && m_numBframesInPattern > m_param->bframes)
+				//如果当前是（I帧或者P帧） 并且相同cost的个数大于配置的B帧个数
+                if (m_sliceType != B_SLICE && m_numBframesInPattern > m_param->bframes) 
                 {
-                    m_isPatternPresent = true;
+                    m_isPatternPresent = true; //置为同一模式
                 }
-                else if (m_sliceType == B_SLICE && !IS_REFERENCED(curFrame))
+                else if (m_sliceType == B_SLICE && !IS_REFERENCED(curFrame)) //如果当前是B帧并且不是B参考帧
                 {
+					//如果当前B帧的cost不等于上一个B帧（编码顺序）的cost 并且不是当前帧是否为当前GOP的最后一个B帧
                     if (m_currentSatd != m_lastBsliceSatdCost && !rce->bLastMiniGopBFrame)
                     {
-                        m_isPatternPresent = false;
-                        m_lastBsliceSatdCost = m_currentSatd;
-                        m_numBframesInPattern = 0;
+                        m_isPatternPresent = false; //开始一个新的模式 置为false
+                        m_lastBsliceSatdCost = m_currentSatd; //记录最新B帧的framecost
+                        m_numBframesInPattern = 0; //相同cost的个数置为0
                     }
-                    else if (m_currentSatd == m_lastBsliceSatdCost)
-                        m_numBframesInPattern++;
+                    else if (m_currentSatd == m_lastBsliceSatdCost) //如果当期B帧cost等于最近一个B帧的cost
+                        m_numBframesInPattern++; //累加相同cost的个数
                 }
             }
             if (rce->isFadeEnd)
@@ -1381,14 +1421,14 @@ int RateControl::rateControlStart(Frame* curFrame, RateControlEntry* rce, Encode
          * switch until the next mini-gop to ensure a min qp for all the frames within 
          * the scene-transition mini-gop */
 
-        double q = x265_qScale2qp(rateEstimateQscale(curFrame, rce));
+        double q = x265_qScale2qp(rateEstimateQscale(curFrame, rce)); //预估当前帧的qscale并将预估qscale转换成qp参数 ？？？
         q = x265_clip3((double)m_param->rc.qpMin, (double)m_param->rc.qpMax, q);
-        m_qp = int(q + 0.5);
-        q = m_isGrainEnabled ? m_qp : q;
-        rce->qpaRc = curEncData.m_avgQpRc = curEncData.m_avgQpAq = q;
+        m_qp = int(q + 0.5); //四舍五入转换成整数qp参数
+        q = m_isGrainEnabled ? m_qp : q;  //Grain默认关闭
+        rce->qpaRc = curEncData.m_avgQpRc = curEncData.m_avgQpAq = q; //获取预估qp参数值（未四舍五入）
         /* copy value of lastRceq into thread local rce struct *to be used in RateControlEnd() */
-        rce->qRceq = m_lastRceq;
-        accumPQpUpdate();
+        rce->qRceq = m_lastRceq; //获取数据对应未加权的qscale
+        accumPQpUpdate(); //累加m_accumPQp*0.95+m_qp和m_accumPNorm*0.95+1
         curFrame->m_rcData->cumulativePQp = m_accumPQp;
         curFrame->m_rcData->cumulativePNorm = m_accumPNorm;
         for (int i = 0; i < 3; i++)
@@ -1396,30 +1436,30 @@ int RateControl::rateControlStart(Frame* curFrame, RateControlEntry* rce, Encode
         curFrame->m_rcData->shortTermCplxSum = m_shortTermCplxSum;
         curFrame->m_rcData->shortTermCplxCount = m_shortTermCplxCount;
     }
-    else // CQP
+    else // CQP 固定QP模式
     {
-        if (m_sliceType == B_SLICE && IS_REFERENCED(curFrame))
-            m_qp = (m_qpConstant[B_SLICE] + m_qpConstant[P_SLICE]) / 2;
+        if (m_sliceType == B_SLICE && IS_REFERENCED(curFrame)) //如果是B参考帧
+            m_qp = (m_qpConstant[B_SLICE] + m_qpConstant[P_SLICE]) / 2; //QP取B帧和P帧的一半
         else
-            m_qp = m_qpConstant[m_sliceType];
-        curEncData.m_avgQpAq = curEncData.m_avgQpRc = m_qp;
-        
-        x265_zone* zone = getZone();
+            m_qp = m_qpConstant[m_sliceType]; //获取相应帧对应的Q
+        curEncData.m_avgQpAq = curEncData.m_avgQpRc = m_qp; //获取当前帧的QP值
+         
+        x265_zone* zone = getZone(); //获取当前帧所在的zone
         if (zone)
         {
-            if (zone->bForceQp)
+            if (zone->bForceQp) //如果是QP模式
                 m_qp += zone->qp - m_qpConstant[P_SLICE];
             else
-                m_qp -= (int)(6.0 * X265_LOG2(zone->bitrateFactor));
+                m_qp -= (int)(6.0 * X265_LOG2(zone->bitrateFactor)); //因子模式
         }
     }
-    if (m_sliceType != B_SLICE)
+    if (m_sliceType != B_SLICE) //当前不是B帧
     {
-        m_lastNonBPictType = m_sliceType;
-        m_leadingNoBSatd = m_currentSatd;
+        m_lastNonBPictType = m_sliceType; //更新最新的非B帧类型
+        m_leadingNoBSatd = m_currentSatd; //更新最新的非B帧的SATD值
     }
-    rce->leadingNoBSatd = m_leadingNoBSatd;
-    if (curFrame->m_forceqp)
+    rce->leadingNoBSatd = m_leadingNoBSatd; //暂无任何作用 获取当前RC的最新非B帧的SATD值
+    if (curFrame->m_forceqp) //如果应用QPfile
     {
         m_qp = (int32_t)(curFrame->m_forceqp + 0.5) - 1;
         m_qp = x265_clip3(m_param->rc.qpMin, m_param->rc.qpMax, m_qp);
@@ -1433,11 +1473,13 @@ int RateControl::rateControlStart(Frame* curFrame, RateControlEntry* rce, Encode
             rce->frameSizePlanned = predictSize(&m_pred[m_predType], m_qp, (double)m_currentSatd);
         }
     }
-    m_framesDone++;
+    m_framesDone++; //计数
 
     return m_qp;
 }
 
+/** 函数功能             ： 累加m_accumPQp*0.95+m_qp和m_accumPNorm*0.95+1
+/*  调用范围             ： 只在rateControlStart函数中被调用*/
 void RateControl::accumPQpUpdate()
 {
     m_accumPQp   *= .95;
@@ -1624,35 +1666,42 @@ fail:
     return false;
 }
 
+/** 函数功能             ： 根据当前已编码bits数目修正预估的qscale值并计算overflow值（qScale *= overflow）
+/*  调用范围             ： 只在rateEstimateQscale函数中被调用
+* \参数 qScale           ： qscale参数
+* \返回                  ： 返回修正后的qscale值 * */
 double RateControl::tuneAbrQScaleFromFeedback(double qScale)
 {
-    double abrBuffer = 2 * m_rateTolerance * m_bitrate;
+    double abrBuffer = 2 * m_rateTolerance * m_bitrate; //最大使用的ABRbuffer大小
     /* use framesDone instead of POC as poc count is not serial with bframes enabled */
-    double overflow = 1.0;
-    double timeDone = (double)(m_framesDone - m_param->frameNumThreads + 1) * m_frameDuration;
-    double wantedBits = timeDone * m_bitrate;
-    int64_t encodedBits = m_totalBits;
-    if (m_param->totalFrames && m_param->totalFrames <= 2 * m_fps)
+    double overflow = 1.0; //用于计算上溢 本次初始化无意义
+    double timeDone = (double)(m_framesDone - m_param->frameNumThreads + 1) * m_frameDuration; //当前RC里面帧的总时长 减去并行个数加上当前的一个
+    double wantedBits = timeDone * m_bitrate; //当前需要的总共bits数目 （RC里面的所有帧）
+    int64_t encodedBits = m_totalBits; //获取当前RC已编码占用的bits
+    if (m_param->totalFrames && m_param->totalFrames <= 2 * m_fps) //如果当前编码的总帧数不够2秒钟
     {
-        abrBuffer = m_param->totalFrames * (m_bitrate / m_fps);
-        encodedBits = m_encodedBits;
+        abrBuffer = m_param->totalFrames * (m_bitrate / m_fps); //ABRbuffer修正为这些帧总共需要的空间
+        encodedBits = m_encodedBits; //获取时间编码bits (without ammortization)
     }
 
     if (wantedBits > 0 && encodedBits > 0 && (!m_partialResidualFrames || 
-        m_param->rc.bStrictCbr || m_isGrainEnabled))
+        m_param->rc.bStrictCbr || m_isGrainEnabled)) //已经有编码数据
     {
-        abrBuffer *= X265_MAX(1, sqrt(timeDone));
-        overflow = x265_clip3(.5, 2.0, 1.0 + (encodedBits - wantedBits) / abrBuffer);
-        qScale *= overflow;
+        abrBuffer *= X265_MAX(1, sqrt(timeDone)); //修正当前buffer
+        overflow = x265_clip3(.5, 2.0, 1.0 + (encodedBits - wantedBits) / abrBuffer); //获取上溢值
+        qScale *= overflow; //修正当前qscale
     }
     return qScale;
 }
 
+
+/** 函数功能             ： ？？？分析加权信息(每个list的第一帧分析加权与否，其它不加权)
+/*  调用范围             ： 只在rateControlStart函数中被调用*/
 double RateControl::tuneQScaleForGrain(double rcOverflow)
 {
-    double qpstep = rcOverflow > 1.1 ? rcOverflow : m_lstep;
+    double qpstep = rcOverflow > 1.1 ? rcOverflow : m_lstep; 
     double qScaleAvg = x265_qp2qScale(m_avgPFrameQp);
-    double  q = m_lastQScaleFor[P_SLICE];
+    double  q = m_lastQScaleFor[P_SLICE]; 
     int curQp = int (x265_qScale2qp(m_lastQScaleFor[P_SLICE]) + 0.5);
     double curBitrate = m_qpToEncodedBits[curQp] * int(m_fps + 0.5);
     int newQp = rcOverflow > 1.1 ? curQp + 2 : rcOverflow > 1 ? curQp + 1 : curQp - 1 ;

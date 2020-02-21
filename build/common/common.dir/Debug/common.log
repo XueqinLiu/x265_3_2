@@ -1,2 +1,3 @@
-﻿  frame.cpp
+﻿  threadpool.cpp
+  wavefront.cpp
   common.vcxproj -> C:\wgq\Codec\x265_3.2\build\common\common.dir\Debug\common.lib
