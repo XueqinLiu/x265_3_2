@@ -205,6 +205,11 @@ public:
     FrameFilter              m_frameFilter;
     NALList                  m_nalList;
 
+/*#if FrameQPfile
+	FILE* FrameQPf;
+	int frameCount;
+#endif*/
+
     class WeightAnalysis : public BondedTaskGroup
     {
     public:

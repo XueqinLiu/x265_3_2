@@ -35,6 +35,8 @@ extern "C" {
 #pragma warning(disable: 4201) // non-standard extension used (nameless struct/union)
 #endif
 
+
+
 /* x265_encoder:
  *      opaque handler for encoder */
 typedef struct x265_encoder x265_encoder;
@@ -2186,8 +2188,16 @@ static const char * const x265_api_query_errnames[] = {
     "libx265 has an invalid bitdepth"
 };
 
+
+
+/*#if FrameQPfile
+extern ofstream FrameQPf;
+#endif*/
+
 #ifdef __cplusplus
 }
 #endif
+
+#define FrameQPfile  1//输出帧qp到文本
 
 #endif // X265_H

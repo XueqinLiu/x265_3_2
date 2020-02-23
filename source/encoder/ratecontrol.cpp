@@ -300,7 +300,7 @@ RateControl::RateControl(x265_param& p)
     {
         if (m_qp && !m_param->bLossless)
         {
-            m_qpConstant[P_SLICE] = m_qp; //P帧获取QP
+            m_qpConstant[P_SLICE] = m_qp; //P帧获取固定QP
             m_qpConstant[I_SLICE] = x265_clip3(QP_MIN, QP_MAX_MAX, (int)(m_qp - m_ipOffset + 0.5)); //I帧获取QP
             m_qpConstant[B_SLICE] = x265_clip3(QP_MIN, QP_MAX_MAX, (int)(m_qp + m_pbOffset + 0.5));
         }

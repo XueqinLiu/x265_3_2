@@ -62,6 +62,12 @@ FrameEncoder::FrameEncoder()
     m_ctuGeomMap = NULL;
     m_localTldIdx = 0;
     memset(&m_rce, 0, sizeof(RateControlEntry));
+
+
+/*#if FrameQPfile
+	FrameQPf = x265_fopen("C:\\wgq\\Codec\\HEVCseq\\x265_result\\qpfile\\Frameqp.txt", "wb");;
+	frameCount = 0;
+#endif*/
 }
 
 void FrameEncoder::destroy()
@@ -101,6 +107,11 @@ void FrameEncoder::destroy()
         delete m_rce.picTimingSEI;
         delete m_rce.hrdTiming;
     }
+
+/*#if FrameQPfile
+	fclose(FrameQPf);
+#endif*/
+
 }
 
 bool FrameEncoder::init(Encoder *top, int numRows, int numCols)
@@ -609,6 +620,11 @@ void FrameEncoder::compressFrame()
 
     /* Clip slice QP to 0-51 spec range before encoding */
     slice->m_sliceQp = x265_clip3(-QP_BD_OFFSET, QP_MAX_SPEC, qp);
+
+#if FrameQPfile
+	fprintf(m_top->FrameQPf, "%d,%d\n", m_top->m_encodedFrameNum, slice->m_sliceQp);
+#endif
+
     if (m_param->bHDROpt)
     {
         int qpCb = x265_clip3(-12, 0, (int)floor((m_top->m_cB * ((-.46) * qp + 9.26)) + 0.5 ));
@@ -1397,7 +1413,7 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
         rowCoder.load(m_initSliceContext);     
 
     // calculate mean QP for consistent deltaQP signalling calculation
-    if (m_param->bOptCUDeltaQP)
+    if (m_param->bOptCUDeltaQP) //最优QP，RD水平5-6时才开启
     {
         ScopedLock self(curRow.lock);
         if (!curRow.avgQPComputed)

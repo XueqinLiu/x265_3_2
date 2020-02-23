@@ -146,7 +146,7 @@ Mode& Analysis::compressCTU(CUData& ctu, Frame& frame, const CUGeom& cuGeom, con
     invalidateContexts(0);
 #endif
 
-    int qp = setLambdaFromQP(ctu, m_slice->m_pps->bUseDQP ? calculateQpforCuSize(ctu, cuGeom) : m_slice->m_sliceQp);
+    int qp = setLambdaFromQP(ctu, m_slice->m_pps->bUseDQP ? calculateQpforCuSize(ctu, cuGeom) : m_slice->m_sliceQp);//£¿£¿£¿
     ctu.setQPSubParts((int8_t)qp, 0, 0);
 
     m_rqt[0].cur.load(initialContext);

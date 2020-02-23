@@ -1,3 +1,63 @@
-﻿  threadpool.cpp
+﻿  bitstream.cpp
+  common.cpp
+  constants.cpp
+  cpu.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\bitstream.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\common.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\constants.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\cpu.cpp)
+  cudata.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\cudata.cpp)
+  dct.cpp
+  deblock.cpp
+  frame.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\deblock.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\dct.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\frame.cpp)
+  framedata.cpp
+  intrapred.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\framedata.cpp)
+  ipfilter.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\intrapred.cpp)
+  loopfilter.cpp
+  lowpassdct.cpp
+  lowres.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\ipfilter.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\loopfilter.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\lowpassdct.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\lowres.cpp)
+  md5.cpp
+  param.cpp
+  piclist.cpp
+  picyuv.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\md5.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\param.cpp)
+  pixel.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\piclist.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\picyuv.cpp)
+  predict.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\pixel.cpp)
+  primitives.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\predict.cpp)
+  quant.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\primitives.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\quant.cpp)
+  scalinglist.cpp
+  shortyuv.cpp
+  slice.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\scalinglist.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\shortyuv.cpp)
+  threading.cpp
+  threadpool.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\slice.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\threading.cpp)
   wavefront.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\threadpool.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\wavefront.cpp)
+  winxp.cpp
+  yuv.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\winxp.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\common\yuv.cpp)
+  version.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
   common.vcxproj -> C:\wgq\Codec\x265_3.2\build\common\common.dir\Debug\common.lib

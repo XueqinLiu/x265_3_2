@@ -132,6 +132,10 @@ Encoder::Encoder()
     m_prevTonemapPayload.payload = NULL;
     m_startPoint = 0;
     m_saveCTUSize = 0;
+
+#if FrameQPfile
+	FrameQPf = x265_fopen("C:\\wgq\\Codec\\HEVCseq\\x265_result\\qpfile\\Frameqp.txt", "wb");;
+#endif
 }
 inline char *strcatFilename(const char *input, const char *suffix)
 {

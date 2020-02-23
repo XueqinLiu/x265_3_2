@@ -1,2 +1,13 @@
-﻿  frameencoder.cpp
+﻿  analysis.cpp
+  api.cpp
+  encoder.cpp
+  frameencoder.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\encoder\analysis.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\encoder\api.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\encoder\frameencoder.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\encoder\encoder.cpp)
+  framefilter.cpp
+  ratecontrol.cpp
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\encoder\framefilter.cpp)
+C:\wgq\Codec\x265_3.2\source\x265.h(1992): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 (编译源文件 C:\wgq\Codec\x265_3.2\source\encoder\ratecontrol.cpp)
   encoder.vcxproj -> C:\wgq\Codec\x265_3.2\build\encoder\encoder.dir\Debug\encoder.lib

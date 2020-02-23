@@ -59,6 +59,7 @@ static char orgConsoleTitle[CONSOLE_TITLE_SIZE] = "";
 #endif
 
 using namespace X265_NS;
+using namespace std;
 
 /* Ctrl-C handler */
 static volatile sig_atomic_t b_ctrl_c /* = 0 */;
@@ -842,6 +843,7 @@ static int rpuParser(x265_picture * pic, FILE * ptr)
  * 3 - unable to generate stream headers
  * 4 - encoder abort */
 
+
 int main(int argc, char **argv)
 {
 #if HAVE_VLD
@@ -857,6 +859,12 @@ int main(int argc, char **argv)
     char** orgArgv = argv;
     get_argv_utf8(&argc, &argv);
 #endif
+
+
+/*#if FrameQPfile
+	FILE* FrameQPf = x265_fopen("C:\\wgq\\Codec\\HEVCseq\\x265_result\\qpfile\\Frameqp.txt", "wb");
+#endif
+*/
 
     ReconPlay* reconPlay = NULL;
     CLIOptions cliopt;

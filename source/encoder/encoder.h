@@ -253,12 +253,20 @@ public:
 
     bool                    m_saveCTUSize;
 
+#if FrameQPfile
+	FILE* FrameQPf;
+#endif
+
     Encoder();
     ~Encoder()
     {
 #ifdef ENABLE_HDR10_PLUS
         if (m_prevTonemapPayload.payload != NULL)
             X265_FREE(m_prevTonemapPayload.payload);
+#endif
+
+#if FrameQPfile
+		fclose(FrameQPf);
 #endif
     };
 
