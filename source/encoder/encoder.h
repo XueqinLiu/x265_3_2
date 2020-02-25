@@ -257,6 +257,11 @@ public:
 	FILE* FrameQPf;
 #endif
 
+#if CtuOrderfile
+	FILE* CtuOrderf;
+#endif
+
+
     Encoder();
     ~Encoder()
     {
@@ -267,6 +272,10 @@ public:
 
 #if FrameQPfile
 		fclose(FrameQPf);
+#endif
+
+#if CtuOrderfile
+		fclose(CtuOrderf);
 #endif
     };
 

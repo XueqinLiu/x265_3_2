@@ -1,4 +1,4 @@
-/*****************************************************************************
+﻿/*****************************************************************************
  * Copyright (C) 2013-2017 MulticoreWare, Inc
  *
  * Authors: Steve Borho <steve@borho.org>
@@ -2198,6 +2198,7 @@ extern ofstream FrameQPf;
 }
 #endif
 
-#define FrameQPfile  1//输出帧qp到文本
+#define FrameQPfile  0//输出帧qp到文本
+#define CtuOrderfile 1//输出CTU编码顺序
 
 #endif // X265_H

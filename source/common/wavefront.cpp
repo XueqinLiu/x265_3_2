@@ -107,7 +107,7 @@ void WaveFront::findJob(int threadId)
             if (ATOMIC_AND(&m_internalDependencyBitmap[w], ~bit) & bit)
             {
                 /* we cleared the bit, we get to process the row */
-                processRow(w * 32 + id, threadId);
+                processRow(w * 32 + id, threadId);  //idÎªÐÐÊý
                 m_helpWanted = true;
                 return; /* check for a higher priority task */
             }

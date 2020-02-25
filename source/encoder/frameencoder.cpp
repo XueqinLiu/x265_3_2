@@ -1,4 +1,4 @@
-/*****************************************************************************
+ï»¿/*****************************************************************************
  * Copyright (C) 2013-2017 MulticoreWare, Inc
  *
  * Authors: Chung Shin Yee <shinyee@multicorewareinc.com>
@@ -114,6 +114,7 @@ void FrameEncoder::destroy()
 
 }
 
+//Encoder::create()ä¸­è°ƒç”¨
 bool FrameEncoder::init(Encoder *top, int numRows, int numCols)
 {
     m_top = top;
@@ -130,7 +131,7 @@ bool FrameEncoder::init(Encoder *top, int numRows, int numCols)
 
     m_sliceBaseRow = X265_MALLOC(uint32_t, m_param->maxSlices + 1);
     ok &= !!m_sliceBaseRow;
-    m_sliceGroupSize = (uint16_t)(m_numRows + m_param->maxSlices - 1) / m_param->maxSlices;
+    m_sliceGroupSize = (uint16_t)(m_numRows + m_param->maxSlices - 1) / m_param->maxSlices; //maxSlices=1ï¼Œm_sliceGroupSize=m_numRows
     uint32_t sliceGroupSizeAccu = (m_numRows << 8) / m_param->maxSlices;    
     uint32_t rowSum = sliceGroupSizeAccu;
     uint32_t sidx = 0;
@@ -209,9 +210,9 @@ bool FrameEncoder::init(Encoder *top, int numRows, int numCols)
 
 /* Generate a complete list of unique geom sets for the current picture dimensions */
 /* Generate a complete list of unique geom sets for the current picture dimensions */
-/** º¯Êı¹¦ÄÜ       £º ¼ÆËãCUËùÓĞÇé¿öµÄ¼¸ºÎĞÅÏ¢
-/*  µ÷ÓÃ·¶Î§       £º Ö»ÔÚFrameEncoder::startCompressFrameº¯ÊıÖĞ±»µ÷ÓÃ
-*   ·µ»ØÖµ         £º ³É¹¦·µ»Øture Ê§°Ü·µ»Ø false
+/** å‡½æ•°åŠŸèƒ½       ï¼š è®¡ç®—CUæ‰€æœ‰æƒ…å†µçš„å‡ ä½•ä¿¡æ¯
+/*  è°ƒç”¨èŒƒå›´       ï¼š åªåœ¨FrameEncoder::startCompressFrameå‡½æ•°ä¸­è¢«è°ƒç”¨
+*   è¿”å›å€¼         ï¼š æˆåŠŸè¿”å›ture å¤±è´¥è¿”å› false
 **/
 bool FrameEncoder::initializeGeoms()
 {
@@ -275,62 +276,62 @@ bool FrameEncoder::initializeGeoms()
     return true;
 }
 
-/*Encoder::encodeÖĞµ÷ÓÃ
-**´¥·¢compressframe()½øĞĞ±àÂë*/
+/*Encoder::encodeä¸­è°ƒç”¨
+**è§¦å‘compressframe()è¿›è¡Œç¼–ç */
 bool FrameEncoder::startCompressFrame(Frame* curFrame)
 {
-    m_slicetypeWaitTime = x265_mdate() - m_prevOutputTime;  //¼ÆËã´ÓÉÏÒ»Ö¡±àÂëÍê±Ïµ½¿ªÊ¼±àÂëĞÂÒ»Ö¡µÄµÈ´ıÊ±¼ä
-    m_frame = curFrame; //ÉèÖÃµ±Ç°´¦ÀíµÄÖ¡
-    m_sliceType = curFrame->m_lowres.sliceType; //»ñÈ¡µ±Ç°µÄÖ¡ÀàĞÍ
-    curFrame->m_encData->m_frameEncoderID = m_jpId; //»ñÈ¡µ±Ç°µÄjob id
-    curFrame->m_encData->m_jobProvider = this; //ÈÃµ±Ç°Ö¡»ñÈ¡µ±Ç°ËùÔÚÏß³ÌµÄÎ»ÖÃ
-    curFrame->m_encData->m_slice->m_mref = m_mref; //»ñÈ¡²Î¿¼Ö¡ĞÅÏ¢
+    m_slicetypeWaitTime = x265_mdate() - m_prevOutputTime;  //è®¡ç®—ä»ä¸Šä¸€å¸§ç¼–ç å®Œæ¯•åˆ°å¼€å§‹ç¼–ç æ–°ä¸€å¸§çš„ç­‰å¾…æ—¶é—´
+    m_frame = curFrame; //è®¾ç½®å½“å‰å¤„ç†çš„å¸§
+    m_sliceType = curFrame->m_lowres.sliceType; //è·å–å½“å‰çš„å¸§ç±»å‹
+    curFrame->m_encData->m_frameEncoderID = m_jpId; //è·å–å½“å‰çš„job id
+    curFrame->m_encData->m_jobProvider = this; //è®©å½“å‰å¸§è·å–å½“å‰æ‰€åœ¨çº¿ç¨‹çš„ä½ç½®
+    curFrame->m_encData->m_slice->m_mref = m_mref; //è·å–å‚è€ƒå¸§ä¿¡æ¯
 
-    if (!m_cuGeoms) //±àÂëÆ÷Ö»Ö´ĞĞframethread¸öÊı£¬ÉêÇëËùÓĞÇé¿öCUµÄ¼¸ºÎĞÅÏ¢
+    if (!m_cuGeoms) //ç¼–ç å™¨åªæ‰§è¡Œframethreadä¸ªæ•°ï¼Œç”³è¯·æ‰€æœ‰æƒ…å†µCUçš„å‡ ä½•ä¿¡æ¯
     {
-        if (!initializeGeoms()) //¼ÆËãCUËùÓĞÇé¿öµÄ¼¸ºÎĞÅÏ¢
+        if (!initializeGeoms()) //è®¡ç®—CUæ‰€æœ‰æƒ…å†µçš„å‡ ä½•ä¿¡æ¯
             return false;
     }
 
-    m_enable.trigger();  //threadMain()ÖĞµÄm_enable.wait();µÈ´ıÕâ¸öĞÅºÅ
+    m_enable.trigger();  //threadMain()ä¸­çš„m_enable.wait();ç­‰å¾…è¿™ä¸ªä¿¡å·
     return true;
 }
 
-/** º¯Êı¹¦ÄÜ       £º ´¥·¢compressframe()½øĞĞ±àÂë
-/*  µ÷ÓÃ·¶Î§       £º Ïß³ÌÑ­»·´¥·¢£¬encoder->create() frame start¿ªÊ¼ (frameThreadÅäÖÃ¶àÉÙ£¬Æğ¼¸¸öÏß³Ì)
-*   ·µ»ØÖµ         £º null
+/** å‡½æ•°åŠŸèƒ½       ï¼š è§¦å‘compressframe()è¿›è¡Œç¼–ç 
+/*  è°ƒç”¨èŒƒå›´       ï¼š çº¿ç¨‹å¾ªç¯è§¦å‘ï¼Œencoder->create() frame startå¼€å§‹ (frameThreadé…ç½®å¤šå°‘ï¼Œèµ·å‡ ä¸ªçº¿ç¨‹)
+*   è¿”å›å€¼         ï¼š null
 */
 void FrameEncoder::threadMain()
 {
     THREAD_NAME("Frame", m_jpId);
-	//±¾º¯Êı»á±»Ö´ĞĞÅäÖÃµÄframethread´ÎÊı£¬ÒòÎªÆğÁËframethread¸öÏß³Ì½øĞĞcompressframe
+	//æœ¬å‡½æ•°ä¼šè¢«æ‰§è¡Œé…ç½®çš„framethreadæ¬¡æ•°ï¼Œå› ä¸ºèµ·äº†framethreadä¸ªçº¿ç¨‹è¿›è¡Œcompressframe
 
     if (m_pool)
     {
-        m_pool->setCurrentThreadAffinity(); //ÉèÖÃÏß³Ì¼äÄÜ¹»ÔÚ²»Í¬µÄºËÔËĞĞ£¬¶ø²»»áÍ¬Ê±Õ¼ÓÃÍ¬Ò»¸öºË
+        m_pool->setCurrentThreadAffinity(); //è®¾ç½®çº¿ç¨‹é—´èƒ½å¤Ÿåœ¨ä¸åŒçš„æ ¸è¿è¡Œï¼Œè€Œä¸ä¼šåŒæ—¶å ç”¨åŒä¸€ä¸ªæ ¸
 
         /* the first FE on each NUMA node is responsible for allocating thread
          * local data for all worker threads in that pool. If WPP is disabled, then
          * each FE also needs a TLD instance */
-        if (!m_jpId) //Ö»ÔÚm_jpid = 0 Ê±²Å»á½øÈë£¬Ò²¾ÍËµÔÚframethread¸öÏß³ÌÖĞÖ»ÓĞµÚÒ»¸ö²Å»á½øÈë (ÒòÎªÕâ´Î³õÊ¼»¯Îª°ÑËùÓĞ²¢ĞĞµÄanalysis¶¼³õÊ¼»¯)
+        if (!m_jpId) //åªåœ¨m_jpid = 0 æ—¶æ‰ä¼šè¿›å…¥ï¼Œä¹Ÿå°±è¯´åœ¨framethreadä¸ªçº¿ç¨‹ä¸­åªæœ‰ç¬¬ä¸€ä¸ªæ‰ä¼šè¿›å…¥ (å› ä¸ºè¿™æ¬¡åˆå§‹åŒ–ä¸ºæŠŠæ‰€æœ‰å¹¶è¡Œçš„analysiséƒ½åˆå§‹åŒ–)
         {
-            int numTLD = m_pool->m_numWorkers; //»ñÈ¡µ±Ç°»úÆ÷ºËÊı  µ¥»ú4ºË²âÊÔÊÇ4
-            if (!m_param->bEnableWavefront) //Èç¹û¹Ø±ÕWPP£¬Ä¬ÈÏ¿ªÆô
+            int numTLD = m_pool->m_numWorkers; //è·å–å½“å‰æœºå™¨æ ¸æ•°  å•æœº4æ ¸æµ‹è¯•æ˜¯4
+            if (!m_param->bEnableWavefront) //å¦‚æœå…³é—­WPPï¼Œé»˜è®¤å¼€å¯
                 numTLD += m_pool->m_numProviders;
 
-            m_tld = new ThreadLocalData[numTLD]; //ÉêÇë²¢ĞĞ¿Õ¼ä
+            m_tld = new ThreadLocalData[numTLD]; //ç”³è¯·å¹¶è¡Œç©ºé—´
             for (int i = 0; i < numTLD; i++)
             {
-                m_tld[i].analysis.initSearch(*m_param, m_top->m_scalingList); //³õÊ¼»¯ËÑË÷Ëã·¨
+                m_tld[i].analysis.initSearch(*m_param, m_top->m_scalingList); //åˆå§‹åŒ–æœç´¢ç®—æ³•
                 m_tld[i].analysis.create(m_tld);
             }
-			//½«ËùÓĞµÄEncoderµÄm_tld¶¼Ö¸ÏòµÚÒ»¸öm_tld
-            for (int i = 0; i < m_pool->m_numProviders; i++) //±éÀúËùÓĞÏß³ÌÈÎÎñ
+			//å°†æ‰€æœ‰çš„Encoderçš„m_tldéƒ½æŒ‡å‘ç¬¬ä¸€ä¸ªm_tld
+            for (int i = 0; i < m_pool->m_numProviders; i++) //éå†æ‰€æœ‰çº¿ç¨‹ä»»åŠ¡
             {
-                if (m_pool->m_jpTable[i]->m_isFrameEncoder)  //Èç¹ûµ±Ç° ÊÇframeEcnoder ²»ÊÇlookachead/* ugh; over-allocation and other issues here */
+                if (m_pool->m_jpTable[i]->m_isFrameEncoder)  //å¦‚æœå½“å‰ æ˜¯frameEcnoder ä¸æ˜¯lookachead/* ugh; over-allocation and other issues here */
                 {
-                    FrameEncoder *peer = dynamic_cast<FrameEncoder*>(m_pool->m_jpTable[i]);//Ç¿ÖÆ×ª»»ÀàĞÍ
-                    peer->m_tld = m_tld; //¹«ÓÃÍ¬Ò»ThreadLocalData buffer
+                    FrameEncoder *peer = dynamic_cast<FrameEncoder*>(m_pool->m_jpTable[i]);//å¼ºåˆ¶è½¬æ¢ç±»å‹
+                    peer->m_tld = m_tld; //å…¬ç”¨åŒä¸€ThreadLocalData buffer
                 }
             }
         }
@@ -348,13 +349,13 @@ void FrameEncoder::threadMain()
         m_localTldIdx = 0;
     }
 
-    m_done.trigger();     /* signal that thread is initialized */ //½«Ö¸¶¨µÄÊÂ¼ş¶ÔÏóÉèÖÃÎªĞÅºÅ×´Ì¬
-    m_enable.wait();      //µÈ´ıÖ¡±àÂë×¼±¸ /* Encoder::encode() triggers this event */ //µÈ´ıÖ±µ½Ö¸¶¨µÄ¶ÔÏó´¦ÓÚ·¢ĞÅºÅ×´Ì¬»ò³¬Ê±
+    m_done.trigger();     /* signal that thread is initialized */ //å°†æŒ‡å®šçš„äº‹ä»¶å¯¹è±¡è®¾ç½®ä¸ºä¿¡å·çŠ¶æ€
+    m_enable.wait();      //ç­‰å¾…å¸§ç¼–ç å‡†å¤‡ /* Encoder::encode() triggers this event */ //ç­‰å¾…ç›´åˆ°æŒ‡å®šçš„å¯¹è±¡å¤„äºå‘ä¿¡å·çŠ¶æ€æˆ–è¶…æ—¶
 
-	//m_doneÔÚencoder.createÖĞÏÈ½øĞĞwait Ã¿Íê³ÉÒ»Ö¡¼´compressFrame()Ö®ºó²Å»á´¥·¢
-	//ÒÔÉÏÁ½¸öÊÇÒ»¸öPVÔ­Óï£¬m_enable±íÊ¾×¼±¸¿ªÊ¼±àÂë£¬ÔÚstartCompressFrameº¯ÊıÖĞ´¥·¢ÔÚcompressFrameÖ®ºówait
-	//m_done±íÊ¾±àÂëÍê³É£¬ÔÚgetEncodedPictureÖ®Ç°wait£¬ÔÚcompressFrameÖ®ºó´¥·¢
-    while (m_threadActive) //Ñ­»·Ö´ĞĞÈÎÎñ£¬Ö±µ½encoder->stop ÖĞÉèÖÃ½áÊø
+	//m_doneåœ¨encoder.createä¸­å…ˆè¿›è¡Œwait æ¯å®Œæˆä¸€å¸§å³compressFrame()ä¹‹åæ‰ä¼šè§¦å‘
+	//ä»¥ä¸Šä¸¤ä¸ªæ˜¯ä¸€ä¸ªPVåŸè¯­ï¼Œm_enableè¡¨ç¤ºå‡†å¤‡å¼€å§‹ç¼–ç ï¼Œåœ¨startCompressFrameå‡½æ•°ä¸­è§¦å‘åœ¨compressFrameä¹‹åwait
+	//m_doneè¡¨ç¤ºç¼–ç å®Œæˆï¼Œåœ¨getEncodedPictureä¹‹å‰waitï¼Œåœ¨compressFrameä¹‹åè§¦å‘
+    while (m_threadActive) //å¾ªç¯æ‰§è¡Œä»»åŠ¡ï¼Œç›´åˆ°encoder->stop ä¸­è®¾ç½®ç»“æŸ
     {
         if (m_param->bCTUInfo)
         {
@@ -366,9 +367,10 @@ void FrameEncoder::threadMain()
             while (((m_frame->m_analysisData.interData == NULL && m_frame->m_analysisData.intraData == NULL) || (uint32_t)m_frame->m_poc != m_frame->m_analysisData.poc))
                 m_frame->m_copyMVType.wait();
         }
+
         compressFrame();
-        m_done.trigger(); //±àÂëÍê±Ï´¥·¢Íê³É //* FrameEncoder::getEncodedPicture() blocks for this event */
-        m_enable.wait();//µÈ´ıÏÂÒ»Ö¡ÊÇ·ñ×¼±¸
+        m_done.trigger(); //ç¼–ç å®Œæ¯•è§¦å‘å®Œæˆ //* FrameEncoder::getEncodedPicture() blocks for this event */
+        m_enable.wait();//ç­‰å¾…ä¸‹ä¸€å¸§æ˜¯å¦å‡†å¤‡
     }
 }
 
@@ -450,12 +452,12 @@ void FrameEncoder::writeTrailingSEIMessages()
     m_seiReconPictureDigest.writeSEImessages(m_bs, *slice->m_sps, NAL_UNIT_SUFFIX_SEI, m_nalList, false);
 }
 
-/*Ö»ÔÚFrameEncoder::threadMain()º¯ÊıÖĞ±»µ÷ÓÃ*/
+/*åªåœ¨FrameEncoder::threadMain()å‡½æ•°ä¸­è¢«è°ƒç”¨*/
 void FrameEncoder::compressFrame()
 {
     ProfileScopeEvent(frameThread);
 
-    m_startCompressTime = x265_mdate();  //»ñÈ¡¿ªÊ¼±àÂëµÄÊ±¼äµã
+    m_startCompressTime = x265_mdate();  //è·å–å¼€å§‹ç¼–ç çš„æ—¶é—´ç‚¹
     m_totalActiveWorkerCount = 0;
     m_activeWorkerCountSamples = 0;
     m_totalWorkerElapsedTime = 0;
@@ -478,7 +480,7 @@ void FrameEncoder::compressFrame()
     /* Emit access unit delimiter unless this is the first frame and the user is
      * not repeating headers (since AUD is supposed to be the first NAL in the access
      * unit) */
-    Slice* slice = m_frame->m_encData->m_slice; //»ñÈ¡µ±Ç°slice
+    Slice* slice = m_frame->m_encData->m_slice; //è·å–å½“å‰slice
 
     if (m_param->bEnableAccessUnitDelimiters && (m_frame->m_poc || m_param->bRepeatHeaders))
     {
@@ -515,11 +517,11 @@ void FrameEncoder::compressFrame()
         m_frame->m_encData->m_slice->m_rpsIdx = (m_top->m_rateControl->m_rce2Pass + m_frame->m_encodeOrder)->rpsIdx;
 
     // Weighted Prediction parameters estimation.
-    bool bUseWeightP = slice->m_sliceType == P_SLICE && slice->m_pps->bUseWeightPred; //µ±Ç°ÊÇ·ñÓ¦ÓÃPÖ¡¼ÓÈ¨Ô¤²â
-    bool bUseWeightB = slice->m_sliceType == B_SLICE && slice->m_pps->bUseWeightedBiPred; //µ±Ç°ÊÇ·ñÓ¦ÓÃBÖ¡¼ÓÈ¨Ô¤²â
+    bool bUseWeightP = slice->m_sliceType == P_SLICE && slice->m_pps->bUseWeightPred; //å½“å‰æ˜¯å¦åº”ç”¨På¸§åŠ æƒé¢„æµ‹
+    bool bUseWeightB = slice->m_sliceType == B_SLICE && slice->m_pps->bUseWeightedBiPred; //å½“å‰æ˜¯å¦åº”ç”¨Bå¸§åŠ æƒé¢„æµ‹
 
     WeightParam* reuseWP = NULL;
-    if (m_param->analysisLoad && (bUseWeightP || bUseWeightB)) //²»Ö´ĞĞ
+    if (m_param->analysisLoad && (bUseWeightP || bUseWeightB)) //ä¸æ‰§è¡Œ
         reuseWP = (WeightParam*)m_frame->m_analysisData.wt;
 
     if (bUseWeightP || bUseWeightB)
@@ -542,31 +544,31 @@ void FrameEncoder::compressFrame()
         }
         else
         {
-            WeightAnalysis wa(*this); //ÓÃÓÚ¶àÏß³Ì ¼ÓÈ¨·ÖÎö
+            WeightAnalysis wa(*this); //ç”¨äºå¤šçº¿ç¨‹ åŠ æƒåˆ†æ
             if (m_pool && wa.tryBondPeers(*this, 1))
-				//´Óµ±Ç°jobÖĞÓµÓĞºË²¢ÇÒsleep×´Ì¬µÄºË¿ÉÒÔ´¥·¢¶àÏß³Ì£¬Èç¹ûÃ»ÓĞ¿ÉÓÃºËÔòÔÚµ±Ç°Ïß³ÌÖĞÍê³É½øÈëelse
+				//ä»å½“å‰jobä¸­æ‹¥æœ‰æ ¸å¹¶ä¸”sleepçŠ¶æ€çš„æ ¸å¯ä»¥è§¦å‘å¤šçº¿ç¨‹ï¼Œå¦‚æœæ²¡æœ‰å¯ç”¨æ ¸åˆ™åœ¨å½“å‰çº¿ç¨‹ä¸­å®Œæˆè¿›å…¥else
                 /* use an idle worker for weight analysis */
-                wa.waitForExit(); //Ò»Ö±µÈ´ıµ½ÈÎÎñÈ«²¿Íê³É£¬ÕâÀïµÈ´ıµÄÊÇºËÊÍ·Å£¬ÄÚºËÊÍ·ÅÁËÈÎÎñÒ²¾ÍÍê³ÉÁË
+                wa.waitForExit(); //ä¸€ç›´ç­‰å¾…åˆ°ä»»åŠ¡å…¨éƒ¨å®Œæˆï¼Œè¿™é‡Œç­‰å¾…çš„æ˜¯æ ¸é‡Šæ”¾ï¼Œå†…æ ¸é‡Šæ”¾äº†ä»»åŠ¡ä¹Ÿå°±å®Œæˆäº†
             else
-                weightAnalyse(*slice, *m_frame, *m_param); //·ÖÎö¼ÓÈ¨ĞÅÏ¢(Ã¿¸ölistµÄµÚÒ»Ö¡·ÖÎö¼ÓÈ¨Óë·ñ£¬ÆäËü²»¼ÓÈ¨)
+                weightAnalyse(*slice, *m_frame, *m_param); //åˆ†æåŠ æƒä¿¡æ¯(æ¯ä¸ªlistçš„ç¬¬ä¸€å¸§åˆ†æåŠ æƒä¸å¦ï¼Œå…¶å®ƒä¸åŠ æƒ)
         }
     }
     else
-        slice->disableWeights(); //¹Ø±Õµ±Ç°Ö¡µÄ¼ÓÈ¨Ô¤²â
+        slice->disableWeights(); //å…³é—­å½“å‰å¸§çš„åŠ æƒé¢„æµ‹
 
     if (m_param->analysisSave && (bUseWeightP || bUseWeightB))
         reuseWP = (WeightParam*)m_frame->m_analysisData.wt;
     // Generate motion references
-    int numPredDir = slice->isInterP() ? 1 : slice->isInterB() ? 2 : 0;  //»ñÈ¡µ±Ç°ÓĞ¼¸¸ölist¡£P1  B2
-    for (int l = 0; l < numPredDir; l++) //±éÀúlist
+    int numPredDir = slice->isInterP() ? 1 : slice->isInterB() ? 2 : 0;  //è·å–å½“å‰æœ‰å‡ ä¸ªlistã€‚P1  B2
+    for (int l = 0; l < numPredDir; l++) //éå†list
     {
         for (int ref = 0; ref < slice->m_numRefIdx[l]; ref++)
         {
             WeightParam *w = NULL;
-            if ((bUseWeightP || bUseWeightB) && slice->m_weightPredTable[l][ref][0].wtPresent) //Èç¹ûµ±Ç°Ó¦ÓÃ¼ÓÈ¨Ô¤²â  [list][refIdx][0:Y, 1:U, 2:V]
-                w = slice->m_weightPredTable[l][ref];//»ñÈ¡¼ÓÈ¨²ÎÊı
+            if ((bUseWeightP || bUseWeightB) && slice->m_weightPredTable[l][ref][0].wtPresent) //å¦‚æœå½“å‰åº”ç”¨åŠ æƒé¢„æµ‹  [list][refIdx][0:Y, 1:U, 2:V]
+                w = slice->m_weightPredTable[l][ref];//è·å–åŠ æƒå‚æ•°
             slice->m_refReconPicList[l][ref] = slice->m_refFrameList[l][ref]->m_reconPic;
-            m_mref[l][ref].init(slice->m_refReconPicList[l][ref], w, *m_param);  //»ñÈ¡²Î¿¼Ö¡ĞÅÏ¢£¬ÉêÇë¼ÓÈ¨Ö¡ÄÚ´æ
+            m_mref[l][ref].init(slice->m_refReconPicList[l][ref], w, *m_param);  //è·å–å‚è€ƒå¸§ä¿¡æ¯ï¼Œç”³è¯·åŠ æƒå¸§å†…å­˜
         }
         if (m_param->analysisSave && (bUseWeightP || bUseWeightB))
         {
@@ -585,7 +587,7 @@ void FrameEncoder::compressFrame()
 
     /* Get the QP for this frame from rate control. This call may block until
      * frames ahead of it in encode order have called rateControlEnd() */
-    int qp = m_top->m_rateControl->rateControlStart(m_frame, &m_rce, m_top);  //»ñÈ¡QP
+    int qp = m_top->m_rateControl->rateControlStart(m_frame, &m_rce, m_top);  //è·å–QP
     m_rce.newQp = qp;
 
     if (m_nr)
@@ -653,7 +655,7 @@ void FrameEncoder::compressFrame()
 
     /* reset entropy coders and compute slice id */
     m_entropyCoder.load(m_initSliceContext);
-    for (uint32_t sliceId = 0; sliceId < m_param->maxSlices; sliceId++)  //×î´ósliceÊıÁ¿¶¼ÊÇ1 
+    for (uint32_t sliceId = 0; sliceId < m_param->maxSlices; sliceId++)  //æœ€å¤§sliceæ•°é‡éƒ½æ˜¯1 
         for (uint32_t row = m_sliceBaseRow[sliceId]; row < m_sliceBaseRow[sliceId + 1]; row++)
             m_rows[row].init(m_initSliceContext, sliceId);   
 
@@ -831,7 +833,7 @@ void FrameEncoder::compressFrame()
      * filters runs behind the CTU compression and reconstruction */
 
     for (uint32_t sliceId = 0; sliceId < m_param->maxSlices; sliceId++)    
-        m_rows[m_sliceBaseRow[sliceId]].active = true; //´¥·¢CTUĞĞ
+        m_rows[m_sliceBaseRow[sliceId]].active = true; //è§¦å‘CTUè¡Œ
     
     if (m_param->bEnableWavefront)
     {
@@ -845,8 +847,8 @@ void FrameEncoder::compressFrame()
                 const uint32_t row = sliceStartRow + rowInSlice;
                 if (row > sliceEndRow)
                     continue;
-                m_row_to_idx[row] = i;
-                m_idx_to_row[i] = row;
+                m_row_to_idx[row] = i;  //CTUè¡Œç´¢å¼•
+                m_idx_to_row[i] = row;  //CTUç´¢å¼•åˆ°è¡Œ
                 i += 1;
             }
         }
@@ -885,21 +887,21 @@ void FrameEncoder::compressFrame()
                     }
                 }
 
-				//µ±Ç°Íâ²¿²Î¿¼¿é£¨Èç²Î¿¼Ö¡¶ÔÓ¦µÄ²Î¿¼¿é£©×¼±¸Íê±Ï ½«µ±Ç°row¶ÔÓ¦Î»ÖÃµÄmapÖÃÎª1 ±ê¼Ç¿ÉÒÔÖ´ĞĞ/
+				//å½“å‰å¤–éƒ¨å‚è€ƒå—ï¼ˆå¦‚å‚è€ƒå¸§å¯¹åº”çš„å‚è€ƒå—ï¼‰å‡†å¤‡å®Œæ¯• å°†å½“å‰rowå¯¹åº”ä½ç½®çš„mapç½®ä¸º1 æ ‡è®°å¯ä»¥æ‰§è¡Œ/
                 enableRowEncoder(m_row_to_idx[row]); /* clear external dependency for this row */
                 if (!rowInSlice)
                 {
                     m_row0WaitTime = x265_mdate();
                     enqueueRowEncoder(m_row_to_idx[row]); /* clear internal dependency, start wavefront */
                 }
-                tryWakeOne();//CTUĞĞ×¼±¸ºÃ²¢´¥·¢wpp£¬ ÔÚfindjobÖĞÔËĞĞ
+                tryWakeOne();//CTUè¡Œå‡†å¤‡å¥½å¹¶è§¦å‘wppï¼Œ åœ¨findjobä¸­è¿è¡Œ
             } // end of loop rowInSlice
         } // end of loop sliceId
 
         m_allRowsAvailableTime = x265_mdate();
         tryWakeOne(); /* ensure one thread is active or help-wanted flag is set prior to blocking */
         static const int block_ms = 250;
-		//Ã¿250ms´¥·¢Ò»´Î ±£Ö¤È«²¿CTUĞĞ¶¼ÄÜ¹»Ö´ĞĞ  £¨Èç¹ûm_completionEvent ÔÚÄ³Ò»Î»ÖÃ´¥·¢£¬Ôò»áÔì³É²»³¬Ê±£¬Ñ­»·ÍË³ö£©
+		//æ¯250msè§¦å‘ä¸€æ¬¡ ä¿è¯å…¨éƒ¨CTUè¡Œéƒ½èƒ½å¤Ÿæ‰§è¡Œ  ï¼ˆå¦‚æœm_completionEvent åœ¨æŸä¸€ä½ç½®è§¦å‘ï¼Œåˆ™ä¼šé€ æˆä¸è¶…æ—¶ï¼Œå¾ªç¯é€€å‡ºï¼‰
         while (m_completionEvent.timedWait(block_ms))
             tryWakeOne(); 
     }
@@ -1026,7 +1028,7 @@ void FrameEncoder::compressFrame()
 
     // finish encode of each CTU row, only required when SAO is enabled
     if (slice->m_bUseSao)  //
-        encodeSlice(0);  //±àÂëslice
+        encodeSlice(0);  //ç¼–ç slice
 
     m_entropyCoder.setBitstream(&m_bs);
 
@@ -1332,22 +1334,22 @@ void FrameEncoder::encodeSlice(uint32_t sliceAddr)
         m_entropyCoder.finishSlice();
 }
 
-/** º¯Êı¹¦ÄÜ             £º £¿£¿´¥·¢WPP£¨ÔÚthreadMain()Ö÷¶¯·¢Æğ£© Ö»½øĞĞÒ»¸öCTUĞĞ¼´ÍË³ö£¨ÆäËüCTUĞèÒªÖØĞÂ´¥·¢£©
-/*  µ÷ÓÃ·¶Î§             £º Ö»ÔÚWaveFront::findJobº¯ÊıÖĞ±»µ÷ÓÃ
-* \²ÎÊı row              £º µ±Ç°µÄrowºÅ£¨CTUĞĞ*2+x£©x=0 Îª±àÂë  x=1ÎªÂË²¨
-* \²ÎÊı threadId         £º µ±Ç°µÄÄÚºËºÅ
-* \·µ»Ø                  £º null * */
+/** å‡½æ•°åŠŸèƒ½             ï¼š è§¦å‘WPPï¼ˆåœ¨threadMain()ä¸»åŠ¨å‘èµ·ï¼‰ åªè¿›è¡Œä¸€ä¸ªCTUè¡Œå³é€€å‡ºï¼ˆå…¶å®ƒCTUéœ€è¦é‡æ–°è§¦å‘ï¼‰
+/*  è°ƒç”¨èŒƒå›´             ï¼š åªåœ¨WaveFront::findJobå‡½æ•°ä¸­è¢«è°ƒç”¨
+* \å‚æ•° row              ï¼š å½“å‰çš„rowå·ï¼ˆCTUè¡Œ*2+xï¼‰x=0 ä¸ºç¼–ç   x=1ä¸ºæ»¤æ³¢
+* \å‚æ•° threadId         ï¼š å½“å‰çš„å†…æ ¸å·
+* \è¿”å›                  ï¼š null * */
 void FrameEncoder::processRow(int row, int threadId)
 {
     int64_t startTime = x265_mdate();
     if (ATOMIC_INC(&m_activeWorkerCount) == 1 && m_stallStartTime)
         m_totalNoWorkerTime += x265_mdate() - m_stallStartTime;
 
-    const uint32_t realRow = m_idx_to_row[row >> 1];
-    const uint32_t typeNum = m_idx_to_row[row & 1];
+    const uint32_t realRow = m_idx_to_row[row >> 1];  //è·å–å½“å‰çœŸæ­£çš„CTUè¡Œå·
+    const uint32_t typeNum = m_idx_to_row[row & 1]; //0 è¡¨ç¤ºéœ€è¦ç¼–ç   1è¡¨ç¤ºéœ€è¦æ»¤æ³¢
 
     if (!typeNum)
-        processRowEncoder(realRow, m_tld[threadId]);
+        processRowEncoder(realRow, m_tld[threadId]);  //æ³¢å‰å¹¶è¡Œæ–¹å¼ç¼–ç 
     else
     {
         m_frameFilter.processRow(realRow);
@@ -1364,15 +1366,15 @@ void FrameEncoder::processRow(int row, int threadId)
 }
 
 // Called by worker threads
-//FrameEncoder::processRow(int row, int threadId)ÖĞµ÷ÓÃ
+//FrameEncoder::processRow(int row, int threadId)ä¸­è°ƒç”¨
 void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
 {
-    const uint32_t row = (uint32_t)intRow;
-    CTURow& curRow = m_rows[row];
+    const uint32_t row = (uint32_t)intRow; //è·å–å½“å‰CTUè¡Œå·
+    CTURow& curRow = m_rows[row];  //è·å–å½“å‰rowå­˜æ”¾ä½ç½®
 
     if (m_param->bEnableWavefront)
     {
-        ScopedLock self(curRow.lock);
+        ScopedLock self(curRow.lock);  //å±€éƒ¨é”
         if (!curRow.active)
             /* VBV restart is in progress, exit out */
             return;
@@ -1413,7 +1415,7 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
         rowCoder.load(m_initSliceContext);     
 
     // calculate mean QP for consistent deltaQP signalling calculation
-    if (m_param->bOptCUDeltaQP) //×îÓÅQP£¬RDË®Æ½5-6Ê±²Å¿ªÆô
+    if (m_param->bOptCUDeltaQP) //æœ€ä¼˜QPï¼ŒRDæ°´å¹³5-6æ—¶æ‰å¼€å¯
     {
         ScopedLock self(curRow.lock);
         if (!curRow.avgQPComputed)
@@ -1478,7 +1480,7 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
     if (tld.analysis.m_sliceMaxY < tld.analysis.m_sliceMinY)
         tld.analysis.m_sliceMaxY = tld.analysis.m_sliceMinY = 0;
 
-	//±éÀúµ±Ç°CTUĞĞËùÓĞµÄCTU
+	//éå†å½“å‰CTUè¡Œæ‰€æœ‰çš„CTU
     while (curRow.completed < numCols)
     {
         ProfileScopeEvent(encodeCTU);
@@ -1487,7 +1489,12 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
         const uint32_t cuAddr = lineStartCUAddr + col;
         CUData* ctu = curEncData.getPicCTU(cuAddr);
         const uint32_t bLastCuInSlice = (bLastRowInSlice & (col == numCols - 1)) ? 1 : 0;
-        ctu->initCTU(*m_frame, cuAddr, slice->m_sliceQp, bFirstRowInSlice, bLastRowInSlice, bLastCuInSlice); //³õÊ¼»¯
+        ctu->initCTU(*m_frame, cuAddr, slice->m_sliceQp, bFirstRowInSlice, bLastRowInSlice, bLastCuInSlice); //åˆå§‹åŒ–
+
+#if CtuOrderfile
+			fprintf(m_top->CtuOrderf, "POC%d   %d       %d\n", slice->m_poc, row, col);
+#endif
+
 
         if (bIsVbv)
         {
@@ -1544,7 +1551,7 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
             ctu->m_vbvAffected = true;
 
         // Does all the CU analysis, returns best top level mode decision
-        Mode& best = tld.analysis.compressCTU(*ctu, *m_frame, m_cuGeoms[m_ctuGeomMap[cuAddr]], rowCoder); //Ñ¹ËõCTU
+        Mode& best = tld.analysis.compressCTU(*ctu, *m_frame, m_cuGeoms[m_ctuGeomMap[cuAddr]], rowCoder); //å‹ç¼©CTU
 
         /* startPoint > encodeOrder is true when the start point changes for
         a new GOP but few frames from the previous GOP is still incomplete.
@@ -1558,7 +1565,7 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
 
         /* advance top-level row coder to include the context of this CTU.
          * if SAO is disabled, rowCoder writes the final CTU bitstream */
-        rowCoder.encodeCTU(*ctu, m_cuGeoms[m_ctuGeomMap[cuAddr]]);  //±àÂëCTU
+        rowCoder.encodeCTU(*ctu, m_cuGeoms[m_ctuGeomMap[cuAddr]]);  //ç¼–ç CTU
 
         if (m_param->bEnableWavefront && col == 1)
             // Save CABAC state for next row
@@ -2179,8 +2186,8 @@ void FrameEncoder::vmafFrameLevelScore()
 }
 #endif
 
-/*Encoder::encodeÖĞµ÷ÓÃ
-/*µÈ´ı±àÂëÍê³É»ñÈ¡ÒÑ±àÂëµÄÖ¡*/
+/*Encoder::encodeä¸­è°ƒç”¨
+/*ç­‰å¾…ç¼–ç å®Œæˆè·å–å·²ç¼–ç çš„å¸§*/
 Frame *FrameEncoder::getEncodedPicture(NALList& output)
 {
     if (m_frame)
@@ -2188,11 +2195,11 @@ Frame *FrameEncoder::getEncodedPicture(NALList& output)
         /* block here until worker thread completes */
         m_done.wait();
 
-        Frame *ret = m_frame; //ÊÇretÖ¸Ïòm_frameËùÖ¸ÏòµÄµØÖ·
-        m_frame = NULL;   //Ö¸Õëm_frameÖ¸Ïò¿ÕµØÖ·
+        Frame *ret = m_frame; //æ˜¯retæŒ‡å‘m_frameæ‰€æŒ‡å‘çš„åœ°å€
+        m_frame = NULL;   //æŒ‡é’ˆm_frameæŒ‡å‘ç©ºåœ°å€
         output.takeContents(m_nalList);
         m_prevOutputTime = x265_mdate();
-        return ret;  //·µ»ØÖ¸Õëret£¬Ò²¾ÍÊÇÖ¸ÏòÒÑ±àÂëÖ¡µÄµØÖ·
+        return ret;  //è¿”å›æŒ‡é’ˆretï¼Œä¹Ÿå°±æ˜¯æŒ‡å‘å·²ç¼–ç å¸§çš„åœ°å€
     }
 
     return NULL;

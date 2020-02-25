@@ -134,7 +134,11 @@ Encoder::Encoder()
     m_saveCTUSize = 0;
 
 #if FrameQPfile
-	FrameQPf = x265_fopen("C:\\wgq\\Codec\\HEVCseq\\x265_result\\qpfile\\Frameqp.txt", "wb");;
+	FrameQPf = x265_fopen("C:\\wgq\\Codec\\HEVCseq\\x265_result\\qpfile\\Frameqp.txt", "wb");
+#endif
+
+#if CtuOrderfile
+	CtuOrderf = x265_fopen("C:\\wgq\\Codec\\HEVCseq\\x265_result\\qpfile\\CtuOrder.txt", "wb");
 #endif
 }
 inline char *strcatFilename(const char *input, const char *suffix)
