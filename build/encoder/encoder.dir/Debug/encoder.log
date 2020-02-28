@@ -1,2 +1,19 @@
-﻿  frameencoder.cpp
+﻿  analysis.cpp
+  api.cpp
+  bitcost.cpp
+  dpb.cpp
+  encoder.cpp
+  entropy.cpp
+  frameencoder.cpp
+  framefilter.cpp
+  level.cpp
+  motion.cpp
+  nal.cpp
+  ratecontrol.cpp
+  reference.cpp
+  sao.cpp
+  search.cpp
+  sei.cpp
+  slicetype.cpp
+  weightPrediction.cpp
   encoder.vcxproj -> C:\wgq\Codec\x265_3.2\build\encoder\encoder.dir\Debug\encoder.lib

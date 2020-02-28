@@ -627,6 +627,10 @@ void FrameEncoder::compressFrame()
 	fprintf(m_top->FrameQPf, "%d,%d\n", m_top->m_encodedFrameNum, slice->m_sliceQp);
 #endif
 
+#if TOPQP	
+	frameQp = slice->m_sliceQp;
+	topQp = slice->m_sliceQp + 2;
+#endif
     if (m_param->bHDROpt)
     {
         int qpCb = x265_clip3(-12, 0, (int)floor((m_top->m_cB * ((-.46) * qp + 9.26)) + 0.5 ));
@@ -1480,20 +1484,33 @@ void FrameEncoder::processRowEncoder(int intRow, ThreadLocalData& tld)
     if (tld.analysis.m_sliceMaxY < tld.analysis.m_sliceMinY)
         tld.analysis.m_sliceMaxY = tld.analysis.m_sliceMinY = 0;
 
+
 	//遍历当前CTU行所有的CTU
     while (curRow.completed < numCols)
     {
         ProfileScopeEvent(encodeCTU);
 
+
+
         const uint32_t col = curRow.completed;
         const uint32_t cuAddr = lineStartCUAddr + col;
         CUData* ctu = curEncData.getPicCTU(cuAddr);
         const uint32_t bLastCuInSlice = (bLastRowInSlice & (col == numCols - 1)) ? 1 : 0;
-        ctu->initCTU(*m_frame, cuAddr, slice->m_sliceQp, bFirstRowInSlice, bLastRowInSlice, bLastCuInSlice); //初始化
+
+#if TOPQP	
+		if (row <= m_numRows / 4)
+			slice->m_sliceQp = topQp;
+		else
+			slice->m_sliceQp = frameQp;
+#endif
 
 #if CtuOrderfile
-			fprintf(m_top->CtuOrderf, "POC%d   %d       %d\n", slice->m_poc, row, col);
+		fprintf(m_top->CtuOrderf, "POC%d   %d     %d     %d\n", slice->m_poc, row, col, slice->m_sliceQp);
 #endif
+
+        ctu->initCTU(*m_frame, cuAddr, slice->m_sliceQp, bFirstRowInSlice, bLastRowInSlice, bLastCuInSlice); //初始化
+
+
 
 
         if (bIsVbv)

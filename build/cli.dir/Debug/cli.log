@@ -1,2 +1,11 @@
-﻿  cli.vcxproj -> C:\wgq\Codec\x265_3.2\build\Debug\x265.exe
+﻿  input.cpp
+  output.cpp
+  raw.cpp
+  reconplay.cpp
+  x265.cpp
+  y4m.cpp
+  yuv.cpp
+  y4m.cpp
+  yuv.cpp
+  cli.vcxproj -> C:\wgq\Codec\x265_3.2\build\Debug\x265.exe
   cli.vcxproj -> C:/wgq/Codec/x265_3.2/build/Debug/x265.pdb (Full PDB)

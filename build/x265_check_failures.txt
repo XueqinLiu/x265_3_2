@@ -1,0 +1,10 @@
+C:\wgq\Codec\x265_3.2\source\encoder\search.cpp:208
+QP used for lambda is out of range
+C:\wgq\Codec\x265_3.2\source\encoder\search.cpp:208
+QP used for lambda is out of range
+C:\wgq\Codec\x265_3.2\source\encoder\search.cpp:208
+QP used for lambda is out of range
+C:\wgq\Codec\x265_3.2\source\encoder\search.cpp:208
+QP used for lambda is out of range
+C:\wgq\Codec\x265_3.2\source\encoder\search.cpp:208
+QP used for lambda is out of range

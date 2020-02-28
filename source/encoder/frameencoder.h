@@ -210,6 +210,11 @@ public:
 	int frameCount;
 #endif*/
 
+#if TOPQP	
+	int topQp;
+	int frameQp;
+#endif
+
     class WeightAnalysis : public BondedTaskGroup
     {
     public:
