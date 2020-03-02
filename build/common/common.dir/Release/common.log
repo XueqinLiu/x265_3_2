@@ -1,33 +1,32 @@
-﻿  Building Custom Rule C:/wgq/Codec/x265_3.2/source/common/CMakeLists.txt
-  winxp.cpp
-  primitives.cpp
-  pixel.cpp
-  dct.cpp
-  lowpassdct.cpp
-  ipfilter.cpp
-  intrapred.cpp
-  loopfilter.cpp
+﻿  bitstream.cpp
+  common.cpp
   constants.cpp
   cpu.cpp
+  cudata.cpp
+  dct.cpp
+  deblock.cpp
+  frame.cpp
+  framedata.cpp
+  intrapred.cpp
+  ipfilter.cpp
+  loopfilter.cpp
+  lowpassdct.cpp
+  lowres.cpp
+  md5.cpp
+  param.cpp
+  piclist.cpp
+  picyuv.cpp
+  pixel.cpp
+  predict.cpp
+  primitives.cpp
+  quant.cpp
+  scalinglist.cpp
+  shortyuv.cpp
+  slice.cpp
   threading.cpp
   threadpool.cpp
   wavefront.cpp
-  md5.cpp
-  bitstream.cpp
+  winxp.cpp
   yuv.cpp
-  shortyuv.cpp
-  picyuv.cpp
-  common.cpp
-  param.cpp
-  frame.cpp
-  framedata.cpp
-  cudata.cpp
-  slice.cpp
-  lowres.cpp
-  piclist.cpp
-  predict.cpp
-  scalinglist.cpp
-  quant.cpp
-  deblock.cpp
   version.cpp
   common.vcxproj -> C:\wgq\Codec\x265_3.2\build\common\common.dir\Release\common.lib

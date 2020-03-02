@@ -146,6 +146,9 @@ Mode& Analysis::compressCTU(CUData& ctu, Frame& frame, const CUGeom& cuGeom, con
     invalidateContexts(0);
 #endif
 
+#if JND_ENABLE
+	m_quant.qp_save = m_slice->m_sliceQp;
+#endif
     int qp = setLambdaFromQP(ctu, m_slice->m_pps->bUseDQP ? calculateQpforCuSize(ctu, cuGeom) : m_slice->m_sliceQp);//£¿£¿£¿
     ctu.setQPSubParts((int8_t)qp, 0, 0);
 
@@ -554,7 +557,7 @@ uint64_t Analysis::compressIntraCU(const CUData& parentCTU, const CUGeom& cuGeom
     else if (cuGeom.log2CUSize != MAX_LOG2_CU_SIZE && mightNotSplit)
     {
         md.pred[PRED_INTRA].cu.initSubCU(parentCTU, cuGeom, qp);
-        checkIntra(md.pred[PRED_INTRA], cuGeom, SIZE_2Nx2N);
+        checkIntra(md.pred[PRED_INTRA], cuGeom, SIZE_2Nx2N);  //µ÷ÓÃDCT
         checkBestMode(md.pred[PRED_INTRA], depth);
 
         if (cuGeom.log2CUSize == 3 && m_slice->m_sps->quadtreeTULog2MinSize < 3)
@@ -1623,7 +1626,7 @@ SplitData Analysis::compressInterCU_rd0_4(const CUData& parentCTU, const CUGeom&
                             ProfileCounter(parentCTU, totalIntraCU[cuGeom.depth]);
                             md.pred[PRED_INTRA].cu.initSubCU(parentCTU, cuGeom, qp);
                             checkIntraInInter(md.pred[PRED_INTRA], cuGeom);
-                            encodeIntraInInter(md.pred[PRED_INTRA], cuGeom);
+                            encodeIntraInInter(md.pred[PRED_INTRA], cuGeom);  //DCT
                             checkBestMode(md.pred[PRED_INTRA], depth);
                         }
                         else
@@ -1702,7 +1705,7 @@ SplitData Analysis::compressInterCU_rd0_4(const CUData& parentCTU, const CUGeom&
                     else
                     {
                         if (m_param->rdLevel == 2)
-                            encodeIntraInInter(*md.bestMode, cuGeom);
+                            encodeIntraInInter(*md.bestMode, cuGeom); //DCT
                         else if (m_param->rdLevel == 1)
                         {
                             /* generate recon pixels with no rate distortion considerations */

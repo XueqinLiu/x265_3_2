@@ -1,2 +1,3 @@
-﻿  x265-shared.vcxproj -> C:\wgq\Codec\x265_3.2\build\Debug\libx265.dll
-  x265-shared.vcxproj -> C:/wgq/Codec/x265_3.2/build/Debug/libx265.pdb (Full PDB)
+﻿    正在创建库 C:/wgq/Codec/x265_3.2/build/Debug/libx265.lib 和对象 C:/wgq/Codec/x265_3.2/build/Debug/libx265.exp
+quant.obj : error LNK2019: 无法解析的外部符号 "public: int __thiscall x265::JND::cal_deltaQP(int)" (?cal_deltaQP@JND@x265@@QAEHH@Z)，该符号在函数 "public: unsigned int __thiscall x265::Quant::transformNxN(class x265::CUData const &,unsigned char const *,unsigned int,short const *,unsigned int,short *,unsigned int,enum x265::TextType,unsigned int,bool)" (?transformNxN@Quant@x265@@QAEIABVCUData@2@PBEIPBFIPAFIW4TextType@2@I_N@Z) 中被引用
+C:\wgq\Codec\x265_3.2\build\Debug\libx265.dll : fatal error LNK1120: 1 个无法解析的外部命令

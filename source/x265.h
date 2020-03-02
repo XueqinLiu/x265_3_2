@@ -2199,7 +2199,8 @@ extern ofstream FrameQPf;
 #endif
 
 #define FrameQPfile  0//输出帧qp到文本
-#define CtuOrderfile 1//输出CTU编码顺序
-#define TOPQP        0//输出CTU编码顺序
+#define CtuOrderfile 0//输出CTU编码顺序
+#define TOPQP        0//更改TOPQP
+#define JND_ENABLE   1//使能JND
 
 #endif // X265_H

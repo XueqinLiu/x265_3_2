@@ -91,13 +91,25 @@ protected:
 
     enum { IEP_RATE = 32768 }; /* FIX15 cost of an equal probable bit */
 
+
 public:
+
+#if JND_ENABLE
+	const double jnd_b[4] = { 0.715, 1.5038, 3.0075, 6.0150 };
+	double jnd;
+
+	int qp_save;
+#endif
 
     NoiseReduction*    m_nr;
     NoiseReduction*    m_frameNr; // Array of NR structures, one for each frameEncoder
 
     Quant();
     ~Quant();
+
+#if JND_ENABLE
+	int cal_deltaQP(int curQP);
+#endif
 
     /* one-time setup */
     bool init(double psyScale, const ScalingList& scalingList, Entropy& entropy);

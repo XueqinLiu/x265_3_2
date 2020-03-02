@@ -394,6 +394,19 @@ uint32_t Quant::signBitHidingHDQ(int16_t* coeff, int32_t* deltaU, uint32_t numSi
     return numSig;
 }
 
+/** 函数功能       ： 对残差块进行变换、量化
+* \参数 cu         ：CUData对象
+* \参数 fenc       ：原始图像
+* \参数 fencStride ：原始图像块的步长
+* \参数 residual   ：残差数据
+* \参数 resiStride ：残差数据的步长
+* \参数 coeff      ：存储残差经过变换、量化后的系数
+* \参数 log2TrSize ：TU尺寸
+* \参数 ttype      ：数据分量类型（亮度/色度）
+* \参数 absPartIdx ：CU地址
+* \参数 useTransformSkip ：是否使用变换跳过模式
+* \返回            ：量化后非零系数的个数
+**/
 uint32_t Quant::transformNxN(const CUData& cu, const pixel* fenc, uint32_t fencStride, const int16_t* residual, uint32_t resiStride,
                              coeff_t* coeff, uint32_t log2TrSize, TextType ttype, uint32_t absPartIdx, bool useTransformSkip)
 {
@@ -429,7 +442,7 @@ uint32_t Quant::transformNxN(const CUData& cu, const pixel* fenc, uint32_t fencS
         if (!sizeIdx && isLuma && isIntra)
             primitives.dst4x4(residual, m_resiDctCoeff, resiStride);
         else
-            primitives.cu[sizeIdx].dct(residual, m_resiDctCoeff, resiStride);
+            primitives.cu[sizeIdx].dct(residual, m_resiDctCoeff, resiStride);  ///调用DCT
 
         /* NOTE: if RDOQ is disabled globally, psy-rdoq is also disabled, so
          * there is no risk of performing this DCT unnecessarily */
@@ -438,7 +451,7 @@ uint32_t Quant::transformNxN(const CUData& cu, const pixel* fenc, uint32_t fencS
             int trSize = 1 << log2TrSize;
             /* perform DCT on source pixels for psy-rdoq */
             primitives.cu[sizeIdx].copy_ps(m_fencShortBuf, trSize, fenc, fencStride);
-            primitives.cu[sizeIdx].dct(m_fencShortBuf, m_fencDctCoeff, trSize);
+            primitives.cu[sizeIdx].dct(m_fencShortBuf, m_fencDctCoeff, trSize);  // 对残差做DCT变换，得到的结果存储在m_resiDctCoeff中
         }
 
         if (m_nr && m_nr->offset)
@@ -451,6 +464,18 @@ uint32_t Quant::transformNxN(const CUData& cu, const pixel* fenc, uint32_t fencS
         }
     }
 
+	/*
+	添加JND模块代码
+	*/
+#if JND_ENABLE
+
+	jnd = jnd_b[log2TrSize - 2];
+	m_qpParam[ttype].setQpParam(qp_save);
+	int QP = cal_deltaQP(m_qpParam[ttype].qp);
+	m_qpParam[ttype].setQpParam(QP);
+#endif
+	
+
     if (m_rdoqLevel)
         return (this->*rdoQuant_func[log2TrSize - 2])(cu, coeff, ttype, absPartIdx, usePsy);
     else
@@ -458,15 +483,26 @@ uint32_t Quant::transformNxN(const CUData& cu, const pixel* fenc, uint32_t fencS
         int deltaU[32 * 32];
 
         int scalingListType = (cu.isIntra(absPartIdx) ? 0 : 3) + ttype;
-        int rem = m_qpParam[ttype].rem;
-        int per = m_qpParam[ttype].per;
-        const int32_t* quantCoeff = m_scalingList->m_quantCoef[log2TrSize - 2][scalingListType][rem];
 
-        int qbits = QUANT_SHIFT + per + transformShift;
-        int add = (cu.m_slice->m_sliceType == I_SLICE ? 171 : 85) << (qbits - 9);
+//#if JND_ENABLE
+        //int rem = QP%6;  // 得到Qp的余数部分，实际上 rem = Qp%6
+        //int per = QP/6;  // 得到Qp的倍数部分，实际上 per = Qp/6
+//#elif
+		int rem = m_qpParam[ttype].rem;
+		int per = m_qpParam[ttype].per;
+//#endif
+        const int32_t* quantCoeff = m_scalingList->m_quantCoef[log2TrSize - 2][scalingListType][rem]; // MF 根据TU的尺寸、前向量化类型和Qp余数部分，选择对应的量化表
+
+        int qbits = QUANT_SHIFT + per + transformShift;  //QUANT_SHIFT = 14，transformShift = 2
+        int add = (cu.m_slice->m_sliceType == I_SLICE ? 171 : 85) << (qbits - 9);  //f'
         int numCoeff = 1 << (log2TrSize * 2);
 
-        uint32_t numSig = primitives.quant(m_resiDctCoeff, quantCoeff, deltaU, coeff, qbits, add, numCoeff);
+        uint32_t numSig = primitives.quant(m_resiDctCoeff, quantCoeff, deltaU, coeff, qbits, add, numCoeff);  // 进行常规量化，参看C版本函数 quant_c，返回值为量化后非零系数的个数
+/*
+#if JND_ENABLE
+		m_qpParam[ttype].setQpParam(jnd.cuQp); //还原QP
+#endif
+*/
 
         if (numSig >= 2 && cu.m_slice->m_pps->bSignHideEnabled)
         {
@@ -1489,3 +1525,11 @@ uint32_t Quant::getSigCtxInc(uint32_t patternSigCtx, uint32_t log2TrSize, uint32
     return (bIsLuma && (posX | posY) >= 4) ? 3 + offset : offset;
 }
 
+#if JND_ENABLE
+int Quant::cal_deltaQP(int curQP) {
+	double Qstep = pow(2, (double)(curQP - 4) / 6);
+	Qstep = Qstep + 2 * jnd;
+	double deltaQP = 6 * log(Qstep) / log(2) + 4;
+	return  (int)deltaQP;
+}
+#endif

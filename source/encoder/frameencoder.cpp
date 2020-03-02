@@ -629,7 +629,7 @@ void FrameEncoder::compressFrame()
 
 #if TOPQP	
 	frameQp = slice->m_sliceQp;
-	topQp = slice->m_sliceQp + 2;
+	topQp = slice->m_sliceQp - 2;
 #endif
     if (m_param->bHDROpt)
     {

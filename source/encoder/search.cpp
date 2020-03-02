@@ -357,7 +357,7 @@ void Search::codeIntraLumaQT(Mode& mode, const CUGeom& cuGeom, uint32_t tuDepth,
             m_entropyCoder.estBit(m_entropyCoder.m_estBitsSbac, log2TrSize, true);
         primitives.cu[sizeIdx].calcresidual[stride % 64 == 0](fenc, pred, residual, stride);
 
-        uint32_t numSig = m_quant.transformNxN(cu, fenc, stride, residual, stride, coeffY, log2TrSize, TEXT_LUMA, absPartIdx, false);
+        uint32_t numSig = m_quant.transformNxN(cu, fenc, stride, residual, stride, coeffY, log2TrSize, TEXT_LUMA, absPartIdx, false); //调用DCT
         if (numSig)
         {
             m_quant.invtransformNxN(cu, residual, stride, coeffY, log2TrSize, TEXT_LUMA, true, false, numSig);
@@ -1243,12 +1243,12 @@ void Search::checkIntra(Mode& intraMode, const CUGeom& cuGeom, PartSize partSize
 
     uint32_t tuDepthRange[2];
     cu.getIntraTUQtDepthRange(tuDepthRange, 0);
-
+	
     intraMode.initCosts();
-    intraMode.lumaDistortion += estIntraPredQT(intraMode, cuGeom, tuDepthRange);
+    intraMode.lumaDistortion += estIntraPredQT(intraMode, cuGeom, tuDepthRange);  //intra模式，返回亮度失真
     if (m_csp != X265_CSP_I400)
     {
-        intraMode.chromaDistortion += estIntraPredChromaQT(intraMode, cuGeom);
+        intraMode.chromaDistortion += estIntraPredChromaQT(intraMode, cuGeom);  //返回色度失真
         intraMode.distortion += intraMode.lumaDistortion + intraMode.chromaDistortion;
     }
     else
@@ -1645,7 +1645,7 @@ sse_t Search::estIntraPredQT(Mode &intraMode, const CUGeom& cuGeom, const uint32
                 if (checkTransformSkip)
                     codeIntraLumaTSkip(intraMode, cuGeom, initTuDepth, absPartIdx, icosts);
                 else
-                    codeIntraLumaQT(intraMode, cuGeom, initTuDepth, absPartIdx, false, icosts, depthRange);
+                    codeIntraLumaQT(intraMode, cuGeom, initTuDepth, absPartIdx, false, icosts, depthRange); //生成预测、残差和重建
                 COPY2_IF_LT(bcost, icosts.rdcost, bmode, rdModeList[i]);
             }
         }
